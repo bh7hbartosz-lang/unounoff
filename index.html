@@ -2,8 +2,8 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UNO Arena Cyberpunk ULTRA 2.0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>UNO Cyberpunk Ultra Arena</title>
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
         :root {
@@ -11,253 +11,234 @@
             --blue: #05d9e8;
             --green: #00ff66;
             --yellow: #ffb800;
-            --dark: #0b0c10;
-            --glass: rgba(20, 24, 38, 0.75);
-            --glass-border: rgba(255, 255, 255, 0.15);
-            --neon-shadow: 0 0 25px rgba(5, 217, 232, 0.5);
+            --dark: #07080e;
+            --glass: rgba(18, 22, 36, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.18);
         }
 
         * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
         
         body { 
             margin: 0; 
-            background: radial-gradient(circle at center, #1a1a2e 0%, #080811 100%);
+            background: radial-gradient(circle at center, #16192b 0%, #05050a 100%);
             color: #fff; 
             overflow: hidden; 
-            min-height: 100vh;
+            height: 100vh;
+            height: -webkit-fill-available;
         }
 
-        .screen { display: none; padding: 20px; text-align: center; min-height: 100vh; flex-direction: column; justify-content: center; align-items: center; }
+        /* --- TŁO CYBER GRID DLA PC --- */
+        .cyber-bg {
+            position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 0; pointer-events: none;
+            background: linear-gradient(rgba(5, 217, 232, 0.05) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(5, 217, 232, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px; animation: gridMove 20s linear infinite;
+        }
+        @keyframes gridMove { 0% { background-position: 0 0; } 100% { background-position: 50px 50px; } }
+
+        .screen { display: none; padding: 15px; text-align: center; height: 100vh; flex-direction: column; justify-content: center; align-items: center; position: relative; z-index: 1; }
         .screen.active { display: flex; }
 
         h1 { 
-            font-size: 3.5rem; font-weight: 900;
+            font-size: 3rem; font-weight: 900;
             background: linear-gradient(45deg, var(--red), var(--yellow), var(--green), var(--blue));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            margin-bottom: 20px; text-transform: uppercase; letter-spacing: 4px;
+            margin-bottom: 15px; text-transform: uppercase; letter-spacing: 3px;
             filter: drop-shadow(0 0 20px rgba(5, 217, 232, 0.6));
-            animation: pulseTitle 3s infinite alternate;
-        }
-
-        @keyframes pulseTitle {
-            0% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(5,217,232,0.5)); }
-            100% { transform: scale(1.03); filter: drop-shadow(0 0 30px rgba(255,42,109,0.8)); }
         }
 
         .glass-panel {
             background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border); border-radius: 28px; padding: 30px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.8), inset 0 0 15px rgba(255,255,255,0.05);
-            width: 100%; max-width: 480px;
+            border: 1px solid var(--glass-border); border-radius: 24px; padding: 25px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 15px rgba(255,255,255,0.05);
+            width: 100%; max-width: 440px;
         }
 
-        label { display: block; text-align: left; font-weight: 800; color: var(--blue); margin: 10px 0 5px 5px; font-size: 0.95rem; }
+        label { display: block; text-align: left; font-weight: 800; color: var(--blue); margin: 8px 0 4px 5px; font-size: 0.9rem; }
 
         input, select { 
-            padding: 16px; font-size: 1.1rem; border-radius: 14px; border: 1px solid var(--glass-border); 
-            background: rgba(0, 0, 0, 0.6); color: #fff; margin-bottom: 12px; width: 100%; 
+            padding: 14px; font-size: 1rem; border-radius: 12px; border: 1px solid var(--glass-border); 
+            background: rgba(0, 0, 0, 0.6); color: #fff; margin-bottom: 10px; width: 100%; 
             text-align: center; font-weight: bold; outline: none; transition: 0.3s;
         }
-        input:focus, select:focus { border-color: var(--blue); box-shadow: 0 0 20px var(--blue); }
         
         .btn { 
-            padding: 18px 25px; font-size: 1.1rem; font-weight: 900; border-radius: 16px; border: none; 
+            padding: 16px 20px; font-size: 1rem; font-weight: 900; border-radius: 14px; border: none; 
             cursor: pointer; color: #fff; background: linear-gradient(135deg, var(--blue), #0056b3); 
-            box-shadow: var(--neon-shadow); transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            width: 100%; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1.5px;
+            box-shadow: 0 0 20px rgba(5,217,232,0.4); transition: all 0.2s; width: 100%; margin-bottom: 10px; 
+            text-transform: uppercase; letter-spacing: 1px;
         }
-        .btn:hover { transform: translateY(-3px) scale(1.02); }
-        .btn:active { transform: translateY(1px) scale(0.97); }
-        .btn-green { background: linear-gradient(135deg, var(--green), #009933); box-shadow: 0 0 20px rgba(0,255,102,0.4); color: #000; }
+        .btn:active { transform: scale(0.96); }
+        .btn-green { background: linear-gradient(135deg, var(--green), #009933); color: #000; box-shadow: 0 0 20px rgba(0,255,102,0.4); }
         .btn-red { background: linear-gradient(135deg, var(--red), #b3003b); box-shadow: 0 0 20px rgba(255,42,109,0.4); }
         .btn-yellow { background: linear-gradient(135deg, var(--yellow), #ff8800); color: #000; box-shadow: 0 0 20px rgba(255,184,0,0.4); }
 
-        /* --- KARTY 3D CYBERPUNK --- */
+        /* --- KARTY 3D --- */
         .card { 
-            width: 130px; height: 190px; border-radius: 20px; border: 4px solid #ffffff; 
+            width: 110px; height: 165px; border-radius: 16px; border: 3px solid #ffffff; 
             display: flex; justify-content: center; align-items: center; position: relative; 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.7), inset 0 0 15px rgba(255,255,255,0.4); 
-            cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); flex-shrink: 0;
-            transform-style: preserve-3d;
+            box-shadow: 0 12px 25px rgba(0,0,0,0.7); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; flex-shrink: 0;
         }
-
         .card::before {
             content: ''; position: absolute; width: 84%; height: 78%;
-            background: rgba(0, 0, 0, 0.3); border-radius: 50%; transform: rotate(-28deg);
-            border: 2px dashed rgba(255,255,255,0.5);
+            background: rgba(0, 0, 0, 0.25); border-radius: 50%; transform: rotate(-28deg);
+            border: 2px dashed rgba(255,255,255,0.4);
         }
-
         .card-inner {
-            position: relative; z-index: 2; font-size: 3.2rem; font-weight: 900; font-style: italic;
-            text-shadow: 3px 4px 0px rgba(0,0,0,0.6); -webkit-text-stroke: 1.5px rgba(0,0,0,0.6);
+            position: relative; z-index: 2; font-size: 2.8rem; font-weight: 900; font-style: italic;
+            text-shadow: 2px 3px 0px rgba(0,0,0,0.6);
         }
 
-        .card.red { background: linear-gradient(135deg, #ff2a6d, #990033); border-color: #ff759f; box-shadow: 0 0 25px rgba(255,42,109,0.6); }
-        .card.blue { background: linear-gradient(135deg, #05d9e8, #005b66); border-color: #70f3ff; box-shadow: 0 0 25px rgba(5,217,232,0.6); }
-        .card.green { background: linear-gradient(135deg, #00ff66, #006622); border-color: #80ffb3; box-shadow: 0 0 25px rgba(0,255,102,0.6); }
-        .card.yellow { background: linear-gradient(135deg, #ffb800, #996e00); border-color: #ffd666; box-shadow: 0 0 25px rgba(255,184,0,0.6); }
-        
-        .card.black { 
-            background: linear-gradient(135deg, #151522, #33334d); border-color: var(--yellow); 
-            box-shadow: 0 0 30px rgba(255,184,0,0.7);
-        }
+        .card.red { background: linear-gradient(135deg, #ff2a6d, #990033); border-color: #ff759f; }
+        .card.blue { background: linear-gradient(135deg, #05d9e8, #005b66); border-color: #70f3ff; }
+        .card.green { background: linear-gradient(135deg, #00ff66, #006622); border-color: #80ffb3; }
+        .card.yellow { background: linear-gradient(135deg, #ffb800, #996e00); border-color: #ffd666; }
+        .card.black { background: linear-gradient(135deg, #151522, #33334d); border-color: var(--yellow); }
         .card.black::before { background: linear-gradient(45deg, var(--red), var(--yellow), var(--green), var(--blue)); opacity: 0.85; }
-        .card.black .card-inner { color: #fff; text-shadow: 0 0 10px #000; }
 
-        .card-badge {
-            position: absolute; top: -10px; right: -10px; background: var(--yellow); color: #000;
-            font-weight: 900; font-size: 1.1rem; width: 34px; height: 34px; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center; border: 3px solid #fff;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5); z-index: 10;
+        /* ANIMACJA ODŻUCENIA (NIE PASUJE) */
+        @keyframes shakeInvalid {
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            20% { transform: translateX(-15px) rotate(-8deg); border-color: var(--red); }
+            40% { transform: translateX(15px) rotate(8deg); border-color: var(--red); }
+            60% { transform: translateX(-10px) rotate(-4deg); }
+            80% { transform: translateX(10px) rotate(4deg); }
         }
+        .shake-invalid { animation: shakeInvalid 0.45s ease-in-out !important; box-shadow: 0 0 25px var(--red) !important; }
 
-        /* ANIMACJE */
+        /* ANIMACJA ZRZUCANIA NA STÓŁ */
         @keyframes dropCardToTable {
-            0% { transform: translateY(-300px) scale(2) rotate(-30deg); opacity: 0; filter: blur(10px); }
-            70% { transform: translateY(20px) scale(1.1) rotate(5deg); opacity: 1; filter: blur(0); }
-            100% { transform: translateY(0) scale(1) rotate(0deg); }
+            0% { transform: translateY(-250px) scale(2) rotate(-20deg); opacity: 0; filter: blur(8px); }
+            100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; filter: blur(0); }
         }
-        .animate-drop { animation: dropCardToTable 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .animate-drop { animation: dropCardToTable 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 
+        /* WYLOT Z TELEFONU */
         @keyframes flyOutFromHand {
             0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-500px) scale(0.3) rotate(20deg); opacity: 0; }
+            100% { transform: translateY(-400px) scale(0.2); opacity: 0; }
         }
-        .animate-flyout { animation: flyOutFromHand 0.4s ease-in forwards !important; }
+        .animate-flyout { animation: flyOutFromHand 0.35s ease-in forwards !important; }
 
-        /* WIDOK PC STOŁU */
-        #pc-board { display: grid; grid-template-rows: auto 1fr auto; height: 100vh; padding: 25px; gap: 20px; width: 100%; max-width: 1400px; }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; background: var(--glass); backdrop-filter: blur(16px); padding: 18px 35px; border-radius: 24px; border: 1px solid var(--glass-border); }
-        .room-code { font-size: 2.2rem; color: var(--yellow); font-weight: 900; letter-spacing: 4px; text-shadow: 0 0 10px rgba(255,184,0,0.5); }
+        /* STÓŁ PC */
+        #pc-board { display: grid; grid-template-rows: auto 1fr auto; height: 100vh; padding: 20px; gap: 15px; width: 100%; max-width: 1300px; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; background: var(--glass); padding: 15px 30px; border-radius: 20px; border: 1px solid var(--glass-border); }
+        .room-code { font-size: 2rem; color: var(--yellow); font-weight: 900; letter-spacing: 3px; }
 
-        .table-center { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; }
-        .cards-area { display: flex; gap: 50px; align-items: center; }
+        .table-center { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 15px; }
+        .cards-area { display: flex; gap: 40px; align-items: center; }
 
-        .deck-back { background: linear-gradient(135deg, #090a0f, #1f2438) !important; border-color: var(--blue) !important; box-shadow: 0 0 20px rgba(5,217,232,0.3) !important; }
+        .deck-back { background: linear-gradient(135deg, #090a0f, #1f2438) !important; border-color: var(--blue) !important; }
         .deck-back::before { background: var(--red) !important; }
-        .deck-back .card-inner { color: var(--yellow) !important; font-size: 1.8rem; }
+        .deck-back .card-inner { color: var(--yellow) !important; font-size: 1.5rem; }
 
-        .stack-indicator {
-            font-size: 1.8rem; font-weight: 900; color: var(--red); text-shadow: 0 0 15px var(--red);
-            background: rgba(0,0,0,0.7); padding: 8px 25px; border-radius: 30px; border: 2px solid var(--red);
-            animation: pulseStack 1s infinite alternate;
+        /* WIDOK DLA ANDROIDA (NIZAWODNY USTAWIONY UKŁAD) */
+        #mobile-screen { padding: 0; justify-content: space-between; }
+        #mobile-board { 
+            display: flex; flex-direction: column; justify-content: space-between; 
+            height: 100vh; height: 100dvh; width: 100%; max-width: 450px; padding: 12px; box-sizing: border-box; 
         }
-        @keyframes pulseStack { 0% { transform: scale(1); } 100% { transform: scale(1.1); } }
 
-        /* LISTA GRACZY (PC) */
-        .players-bar { display: flex; gap: 25px; justify-content: center; align-items: center; padding: 10px; }
-        .player-node { background: var(--glass); backdrop-filter: blur(12px); padding: 20px 30px; border-radius: 22px; border: 2px solid transparent; min-width: 190px; text-align: center; transition: 0.4s; }
-        .player-node.active-turn { border-color: var(--green); transform: translateY(-12px) scale(1.08); box-shadow: 0 0 30px rgba(0,255,102,0.4); background: rgba(0,255,102,0.1); }
-        .player-name { font-weight: 900; font-size: 1.3rem; letter-spacing: 1px; }
-        .player-cards-count { color: #ccc; font-size: 1rem; margin-top: 6px; font-weight: 600; }
-
-        /* WIDOK TELEFONU */
-        #mobile-board { height: 100vh; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; width: 100%; max-width: 500px; margin: 0 auto; }
-        .status-box { background: var(--glass); backdrop-filter: blur(15px); padding: 18px; border-radius: 20px; text-align: center; font-size: 1.3rem; font-weight: 900; border: 1px solid var(--glass-border); }
+        .status-box { background: var(--glass); padding: 12px; border-radius: 16px; text-align: center; font-size: 1.1rem; font-weight: 900; border: 1px solid var(--glass-border); }
         
-        .hand-container { display: flex; gap: 15px; overflow-x: auto; padding: 30px 15px; min-height: 250px; align-items: center; scroll-behavior: smooth; }
-        .hand-container .card { width: 110px; height: 165px; }
+        .hand-container { 
+            display: flex; gap: 12px; overflow-x: auto; padding: 20px 10px; 
+            align-items: center; scroll-behavior: smooth; flex-grow: 1; margin: 10px 0;
+            -webkit-overflow-scrolling: touch;
+        }
 
-        /* MODALE */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px); justify-content: center; align-items: center; z-index: 100; }
-        .color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 85%; max-width: 320px; }
-        .color-btn { height: 120px; border-radius: 24px; border: 4px solid #fff; font-size: 1.4rem; font-weight: 900; box-shadow: 0 10px 25px rgba(0,0,0,0.5); cursor: pointer; text-transform: uppercase; }
+        .mobile-controls { width: 100%; padding-bottom: 10px; }
 
-        #game-log { font-size: 2.2rem; color: var(--yellow); text-shadow: 0 0 20px rgba(255,184,0,0.8); min-height: 55px; text-align: center; font-weight: 900; letter-spacing: 1px; }
-        
-        .lobby-players-list { background: rgba(0,0,0,0.4); padding: 15px; border-radius: 15px; margin: 15px 0; max-height: 150px; overflow-y: auto; text-align: left; }
-        .lobby-player-item { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); font-weight: bold; color: var(--green); display: flex; justify-content: space-between; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); justify-content: center; align-items: center; z-index: 100; }
+        .color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 85%; max-width: 300px; }
+        .color-btn { height: 100px; border-radius: 20px; border: 3px solid #fff; font-size: 1.2rem; font-weight: 900; cursor: pointer; text-transform: uppercase; }
+
+        #game-log { font-size: 1.8rem; color: var(--yellow); text-shadow: 0 0 15px rgba(255,184,0,0.8); min-height: 45px; text-align: center; font-weight: 900; }
+        .players-bar { display: flex; gap: 15px; justify-content: center; align-items: center; }
+        .player-node { background: var(--glass); padding: 15px 25px; border-radius: 18px; border: 2px solid transparent; min-width: 150px; }
+        .player-node.active-turn { border-color: var(--green); transform: translateY(-8px); box-shadow: 0 0 25px rgba(0,255,102,0.4); background: rgba(0,255,102,0.12); }
     </style>
 </head>
 <body>
 
-    <!-- 1. EKRAN STARTOWY -->
+    <div class="cyber-bg"></div>
+
+    <!-- 1. START -->
     <div id="start-screen" class="screen active">
-        <h1>⚡ UNO CYBERPUNK 2.0</h1>
+        <h1>⚡ UNO CYBERPUNK</h1>
         <div class="glass-panel">
             <button class="btn btn-green" onclick="initHost()">STWÓRZ POKÓJ (PC/TV)</button>
-            <div style="margin: 18px 0; color: #aaa; font-size: 0.95rem; font-weight: 800;">— LUB DOŁĄCZ NA TELEFONIE —</div>
+            <div style="margin: 15px 0; color: #aaa; font-size: 0.9rem; font-weight: 800;">— LUB DOŁĄCZ NA TELEFONIE —</div>
             <input type="text" id="join-code" placeholder="KOD POKOJU" style="text-transform: uppercase;">
             <input type="text" id="player-name" placeholder="TWOJE IMIĘ">
             <button class="btn" onclick="initClient()">DOŁĄCZ DO GRY</button>
-            <div id="connection-status" style="font-size:0.9rem; color: var(--yellow); margin-top: 10px; font-weight: bold;"></div>
+            <div id="connection-status" style="font-size:0.85rem; color: var(--yellow); margin-top: 8px; font-weight: bold;"></div>
         </div>
     </div>
 
-    <!-- 2. EKRAN LOBBY HOST (MENU USTAWIEŃ GRY) -->
+    <!-- 2. LOBBY HOST -->
     <div id="host-lobby-screen" class="screen">
-        <h1>⚙️ USTAWIENIA GRY</h1>
+        <h1>⚙️ LOBBY GRY</h1>
         <div class="glass-panel">
-            <div style="font-size: 1.4rem; font-weight: 900; margin-bottom: 10px;">KOD POKOJU: <span id="lobby-room-code" style="color:var(--yellow)">----</span></div>
+            <div style="font-size: 1.3rem; font-weight: 900; margin-bottom: 10px;">KOD POKOJU: <span id="lobby-room-code" style="color:var(--yellow)">----</span></div>
             
-            <label>POZIOM TRUDNOŚCI:</label>
+            <label>TRUDNOŚĆ GRY:</label>
             <select id="difficulty-select">
-                <option value="easy">💚 ŁATWY (Bez presji)</option>
-                <option value="medium" selected>💛 ŚREDNI (Standardowy)</option>
-                <option value="hard">🔥 TRUDNY (Surowe kary za brak UNO)</option>
+                <option value="easy">💚 ŁATWY</option>
+                <option value="medium" selected>💛 ŚREDNI</option>
+                <option value="hard">🔥 TRUDNY</option>
             </select>
 
-            <label>POCZĄTKOWA ILOSĆ KART NA GRACZA:</label>
+            <label>LICZBA KART NA START:</label>
             <select id="cards-count-select">
-                <option value="3">⚡ Szybka gra (3 karty)</option>
-                <option value="5">🎮 Średnia gra (5 kart)</option>
-                <option value="7" selected>🎴 Klasyczna gra (7 kart)</option>
-                <option value="10">🔥 Długa gra (10 kart)</option>
+                <option value="3">⚡ 3 Karty</option>
+                <option value="5">🎮 5 Kart</option>
+                <option value="7" selected>🎴 7 Kart</option>
             </select>
 
-            <label>PODŁĄCZENI GRACZE:</label>
-            <div id="lobby-players-container" class="lobby-players-list">
-                <div style="color:#aaa; text-align:center;">Oczekiwanie na graczy na telefonach...</div>
-            </div>
+            <div id="lobby-players-list" style="margin: 15px 0; text-align: left; font-weight: bold; color: var(--green);"></div>
 
             <button class="btn btn-green" id="start-game-btn" onclick="startGame()" style="display:none;">ROZPOCZNIJ GRĘ</button>
         </div>
     </div>
 
-    <!-- 3. STÓŁ GŁÓWNY (PC/TV) -->
+    <!-- 3. STÓŁ PC -->
     <div id="pc-screen" class="screen">
         <div id="pc-board">
             <div class="top-bar">
                 <div>KOD: <span id="display-room-code" class="room-code">----</span></div>
-                <div id="difficulty-tag" style="font-weight: 900; color: var(--blue); font-size: 1.2rem;"></div>
+                <div id="difficulty-tag" style="font-weight: 900; color: var(--blue);"></div>
             </div>
 
             <div class="table-center">
                 <div id="game-log">Czekam na ruchy...</div>
-                <div id="stack-counter" class="stack-indicator" style="display:none;">KOMBO ATAKU: +0</div>
                 <div class="cards-area">
-                    <div class="card deck-back">
-                        <div class="card-inner">UNO</div>
-                    </div>
-                    <div id="top-card" class="card red">
-                        <div class="card-inner">?</div>
-                    </div>
+                    <div class="card deck-back"><div class="card-inner">UNO</div></div>
+                    <div id="top-card" class="card red"><div class="card-inner">?</div></div>
                 </div>
-                <div id="current-color-indicator" style="font-size: 1.5rem; font-weight: 900; letter-spacing: 2px;"></div>
+                <div id="current-color-indicator" style="font-size: 1.3rem; font-weight: 900;"></div>
             </div>
 
             <div id="players-list" class="players-bar"></div>
         </div>
     </div>
 
-    <!-- 4. KONTROLER (TELEFON) -->
+    <!-- 4. KONTROLER ANDROID / PHONE -->
     <div id="mobile-screen" class="screen">
         <div id="mobile-board">
-            <div class="status-box" id="turn-status">Połączono! Czekaj na start...</div>
+            <div class="status-box" id="turn-status">Łączenie...</div>
             
-            <div id="my-hand" class="hand-container">
-                <!-- Karty gracza -->
-            </div>
+            <div id="my-hand" class="hand-container"></div>
 
-            <div>
-                <button class="btn btn-red" id="callout-uno-btn" onclick="calloutNoUno()" style="display:none;">🚨 ZGŁOŚ BRAK UNO U RYWALA! 🚨</button>
+            <div class="mobile-controls">
+                <button class="btn btn-red" id="callout-uno-btn" onclick="calloutNoUno()" style="display:none;">🚨 ZGŁOŚ BRAK UNO! 🚨</button>
                 <button class="btn btn-yellow" id="uno-btn" onclick="sayUno()" style="display:none;">🔥 KRZYCZ UNO! 🔥</button>
                 <button class="btn btn-red" id="draw-btn" onclick="drawCard()" disabled>DOBIERZ KARTĘ</button>
             </div>
         </div>
     </div>
 
-    <!-- 5. MODAL WYBORU KOLORU -->
+    <!-- 5. COLOR PICKER -->
     <div id="color-picker" class="modal">
         <div class="color-grid">
             <button class="color-btn" style="background: var(--red); color:#fff;" onclick="chooseColor('red')">Czerwony</button>
@@ -267,20 +248,9 @@
         </div>
     </div>
 
-    <!-- 6. MODAL PYTANIA O POŁOŻENIE KILKU KART -->
-    <div id="multi-card-modal" class="modal">
-        <div class="glass-panel" style="max-width:350px;">
-            <h3 id="multi-card-text" style="color:var(--yellow); font-size: 1.3rem;">Masz kilka takich kart!</h3>
-            <p>Czy chcesz wyłożyć wszystkie naraz?</p>
-            <button class="btn btn-green" onclick="confirmMultiPlay(true)">TAK, POŁÓŻ WSZYSTKIE</button>
-            <button class="btn btn-red" onclick="confirmMultiPlay(false)">NIE, TYLKO JEDNĄ</button>
-        </div>
-    </div>
-
 <script>
     let peer = null, conn = null, connections = [], isHost = false;
-    let pendingCardIndexes = [], pendingColor = null;
-    let selectedSingleIndex = null, matchingIndexesGroup = [];
+    let pendingCardIndexes = [];
 
     const PEER_CONFIG = {
         debug: 1,
@@ -289,18 +259,24 @@
 
     let gameState = { 
         players: [], deck: [], topCard: null, currentColor: null, 
-        currentTurn: 0, direction: 1, started: false, attackStack: 0, difficulty: 'medium', initialCardsCount: 7 
+        currentTurn: 0, direction: 1, started: false, attackStack: 0, difficulty: 'medium' 
     };
 
     function setStatus(msg) { document.getElementById('connection-status').innerText = msg; }
 
-    // LEKTOR GŁOSOWY (Web Speech API)
+    // DEDYKOWANY NATURALNY LEKTOR Z ODMIANĄ SŁÓW
     function speakText(text) {
         if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'pl-PL';
-            utterance.rate = 1.1;
+            utterance.rate = 1.05;
+
+            // Wybranie najlepszego głosu pl-PL
+            const voices = window.speechSynthesis.getVoices();
+            const plVoice = voices.find(v => v.lang.includes('pl') || v.lang.includes('PL'));
+            if(plVoice) utterance.voice = plVoice;
+
             window.speechSynthesis.speak(utterance);
         }
     }
@@ -326,7 +302,7 @@
     }
 
     function initHost() {
-        setStatus("Tworzenie pokoju...");
+        setStatus("Tworzenie...");
         isHost = true;
         const code = Math.random().toString(36).substring(2, 6).toUpperCase();
         peer = new Peer('UNO-ARENA-' + code, PEER_CONFIG);
@@ -352,9 +328,9 @@
         const rawCode = document.getElementById('join-code').value.trim().toUpperCase();
         const name = document.getElementById('player-name').value.trim();
 
-        if(!rawCode || !name) return alert('Wpisz kod pokoju i imię!');
+        if(!rawCode || !name) return alert('Wpisz kod i imię!');
 
-        setStatus("Łączenie z serwerem...");
+        setStatus("Łączenie...");
         peer = new Peer(PEER_CONFIG);
 
         peer.on('open', () => {
@@ -370,24 +346,23 @@
     }
 
     function updateLobbyUI() {
-        const container = document.getElementById('lobby-players-container');
-        container.innerHTML = '';
-        gameState.players.forEach((p, idx) => {
-            container.innerHTML += `<div class="lobby-player-item"><span>Gracz ${idx + 1}: ${p.name}</span> <span>GOTOWY ✅</span></div>`;
-        });
+        const list = document.getElementById('lobby-players-list');
+        list.innerHTML = gameState.players.map((p, i) => `<div>Gracz ${i+1}: ${p.name} ✅</div>`).join('');
+        document.getElementById('start-game-btn').style.display = gameState.players.length >= 2 ? 'block' : 'none';
+    }
 
-        const startBtn = document.getElementById('start-game-btn');
-        if (gameState.players.length >= 2) startBtn.style.display = 'block';
-        else startBtn.style.display = 'none';
+    // ODMIANA KOLORÓW I KART DLA LEKTORA
+    function formatCardNameForSpeech(card) {
+        const colorNames = { red: 'czerwoną', blue: 'niebieską', green: 'zieloną', yellow: 'żółtą', black: 'czarną' };
+        const valNames = { '🚫': 'blokadę', '🔄': 'zmianę kierunku', '+2': 'plus dwa', '+4': 'plus cztery', '🎨': 'wybór koloru' };
+        return `${colorNames[card.color] || ''} ${valNames[card.value] || card.value}`;
     }
 
     function handleHostMessage(connection, data) {
         let player = gameState.players.find(p => p.id === connection.peer);
 
         if (data.type === 'JOIN') {
-            if (!player) {
-                gameState.players.push({ id: connection.peer, name: data.name, hand: [], declaredUno: false });
-            }
+            if (!player) gameState.players.push({ id: connection.peer, name: data.name, hand: [], declaredUno: false });
             updateLobbyUI();
             broadcastState();
         }
@@ -396,107 +371,62 @@
             if (gameState.players[gameState.currentTurn].id === connection.peer) {
                 const playedCards = data.indexes.map(i => player.hand[i]);
                 const firstCard = playedCards[0];
-                const activeColor = gameState.currentColor || gameState.topCard.color;
 
-                let isValid = false;
+                data.indexes.sort((a,b) => b - a).forEach(i => player.hand.splice(i, 1));
 
-                if (gameState.attackStack > 0) {
-                    if (firstCard.value === '+2' || firstCard.value === '+4') isValid = true;
+                gameState.topCard = playedCards[playedCards.length - 1];
+                gameState.currentColor = data.chosenColor || (gameState.topCard.color !== 'black' ? gameState.topCard.color : null);
+
+                let voiceText = `${player.name} rzuca ${formatCardNameForSpeech(firstCard)}!`;
+
+                playedCards.forEach(c => {
+                    if (c.value === '+2') gameState.attackStack += 2;
+                    if (c.value === '+4') gameState.attackStack += 4;
+                });
+
+                if (player.hand.length === 0) {
+                    showLog(`🏆 ${player.name} WYGRYWA!`);
+                    speakText(`Gracz ${player.name} wygrywa całą grę! Brawo!`);
+                    gameState.started = false;
                 } else {
-                    if (firstCard.color === 'black' || firstCard.color === activeColor || firstCard.value === gameState.topCard.value) {
-                        isValid = true;
-                    }
+                    showLog(voiceText);
+                    speakText(voiceText);
+                    if (firstCard.value === '🚫') nextTurn();
+                    nextTurn();
                 }
 
-                if (isValid) {
-                    data.indexes.sort((a,b) => b - a).forEach(i => player.hand.splice(i, 1));
-
-                    gameState.topCard = playedCards[playedCards.length - 1];
-                    gameState.currentColor = data.chosenColor || (gameState.topCard.color !== 'black' ? gameState.topCard.color : null);
-
-                    const nextPlayerName = gameState.players[(gameState.currentTurn + gameState.direction + gameState.players.length) % gameState.players.length].name;
-                    let voiceText = "";
-
-                    playedCards.forEach(c => {
-                        if (c.value === '+2') gameState.attackStack += 2;
-                        if (c.value === '+4') gameState.attackStack += 4;
-                    });
-
-                    if (firstCard.value === '+2' || firstCard.value === '+4') {
-                        voiceText = `Gracz ${player.name} położył kartę ${firstCard.value} dla ${nextPlayerName}!`;
-                    } else if (firstCard.value === '🚫') {
-                        voiceText = `Gracz ${player.name} zablokował ${nextPlayerName}!`;
-                    } else if (firstCard.value === '🔄') {
-                        voiceText = `Gracz ${player.name} zmienił kierunek gry!`;
-                    } else {
-                        voiceText = `Gracz ${player.name} zagrywa kartę ${firstCard.value}.`;
-                    }
-
-                    if (player.hand.length === 1 && !player.declaredUno) {
-                        player.mustDeclareUno = true;
-                    }
-
-                    if (player.hand.length === 0) {
-                        showLog(`🏆 ${player.name} WYGRYWA MECZ!`);
-                        speakText(`Gracz ${player.name} wygrywa mecz! Gratulacje!`);
-                        gameState.started = false;
-                    } else {
-                        showLog(voiceText);
-                        speakText(voiceText);
-                        if (firstCard.value === '🚫') nextTurn(); 
-                        nextTurn();
-                    }
-
-                    broadcastState(true);
-                }
+                broadcastState(true);
             }
         }
 
         if (data.type === 'DRAW_CARD') {
             if (gameState.players[gameState.currentTurn].id === connection.peer) {
-                if (gameState.attackStack > 0) {
-                    drawMultiple(player, gameState.attackStack);
-                    let msg = `${player.name} dobiera ${gameState.attackStack} kart z ataku!`;
-                    showLog(msg);
-                    speakText(msg);
-                    gameState.attackStack = 0;
-                    nextTurn();
-                } else {
-                    // Dobranie 1 karty i sprawdzenie czy pasuje (Chain play)
-                    drawMultiple(player, 1);
-                    const drawnCard = player.hand[player.hand.length - 1];
-                    const activeColor = gameState.currentColor || gameState.topCard.color;
+                let drawCount = gameState.attackStack > 0 ? gameState.attackStack : 1;
+                drawMultiple(player, drawCount);
+                gameState.attackStack = 0;
+                
+                let msg = `${player.name} dobiera ${drawCount === 1 ? 'jedną kartę' : drawCount + ' karty'}.`;
+                showLog(msg);
+                speakText(msg);
 
-                    if (drawnCard.color === 'black' || drawnCard.color === activeColor || drawnCard.value === gameState.topCard.value) {
-                        let msg = `${player.name} dobrał kartę pasującą i może ją od razu wyłożyć!`;
-                        showLog(msg);
-                        speakText(msg);
-                    } else {
-                        let msg = `${player.name} dobiera kartę.`;
-                        showLog(msg);
-                        nextTurn();
-                    }
-                }
-                player.declaredUno = false;
+                nextTurn();
                 broadcastState();
             }
         }
 
         if (data.type === 'DECLARE_UNO') {
             player.declaredUno = true;
-            player.mustDeclareUno = false;
-            let msg = `Gracz ${player.name} krzyczy UNO!`;
+            let msg = `${player.name} głośno krzyczy UNO!`;
             showLog(msg);
             speakText(msg);
             broadcastState();
         }
 
         if (data.type === 'CALLOUT_NO_UNO') {
-            // Szukamy gracza, który ma 1 kartę i nie krzyknął UNO
-            let caughtPlayer = gameState.players.find(p => p.hand.length === 1 && !p.declaredUno);
-            if (caughtPlayer) {
-                drawMultiple(caughtPlayer, 2);
-                let msg = `Gracz ${caughtPlayer.name} nie powiedział UNO i dobiera 2 karty!`;
+            let caught = gameState.players.find(p => p.hand.length === 1 && !p.declaredUno);
+            if (caught) {
+                drawMultiple(caught, 2);
+                let msg = `${caught.name} nie powiedział UNO i dobiera dwie karty!`;
                 showLog(msg);
                 speakText(msg);
                 broadcastState();
@@ -512,17 +442,15 @@
     }
 
     function startGame() {
-        gameState.difficulty = document.getElementById('difficulty-select').value;
-        gameState.initialCardsCount = parseInt(document.getElementById('cards-count-select').value);
         gameState.deck = createFullDeck();
         gameState.started = true;
         gameState.attackStack = 0;
-        
+        let count = parseInt(document.getElementById('cards-count-select').value);
+
         gameState.players.forEach(p => {
             p.hand = [];
-            drawMultiple(p, gameState.initialCardsCount);
+            drawMultiple(p, count);
             p.declaredUno = false;
-            p.mustDeclareUno = false;
         });
 
         do { gameState.topCard = gameState.deck.pop(); } while (gameState.topCard.color === 'black');
@@ -531,9 +459,8 @@
         gameState.currentTurn = 0;
 
         switchScreen('pc-screen');
-        document.getElementById('difficulty-tag').innerText = `TRYB: ${gameState.difficulty.toUpperCase()}`;
         showLog("START GRY!");
-        speakText("Rozpoczynamy grę w UNO!");
+        speakText("Zaczynamy grę!");
         broadcastState(true);
     }
 
@@ -543,7 +470,6 @@
 
     function broadcastState(triggerAnimation = false) {
         renderPCBoard(triggerAnimation);
-
         let someoneForgotUno = gameState.players.some(p => p.hand.length === 1 && !p.declaredUno);
 
         connections.forEach(c => {
@@ -563,17 +489,12 @@
 
     function renderPCBoard(triggerAnimation = false) {
         const list = document.getElementById('players-list');
-        list.innerHTML = '';
-
-        gameState.players.forEach((p, idx) => {
-            const isActive = idx === gameState.currentTurn;
-            list.innerHTML += `
-                <div class="player-node ${isActive ? 'active-turn' : ''}">
-                    <div class="player-name">${p.name} ${p.declaredUno ? '🔥' : ''}</div>
-                    <div class="player-cards-count">🎴 ${p.hand.length} kart</div>
-                </div>
-            `;
-        });
+        list.innerHTML = gameState.players.map((p, idx) => `
+            <div class="player-node ${idx === gameState.currentTurn ? 'active-turn' : ''}">
+                <div style="font-weight:900;">${p.name} ${p.declaredUno ? '🔥' : ''}</div>
+                <div style="color:#aaa; font-size:0.9rem;">🎴 ${p.hand.length} kart</div>
+            </div>
+        `).join('');
 
         if (gameState.topCard) {
             const topCardEl = document.getElementById('top-card');
@@ -586,17 +507,8 @@
                 topCardEl.classList.add('animate-drop');
             }
 
-            const colorInd = document.getElementById('current-color-indicator');
-            colorInd.innerText = `KOLOR: ${translateColor(gameState.currentColor).toUpperCase()}`;
-            colorInd.style.color = `var(--${gameState.currentColor})`;
-
-            const stackEl = document.getElementById('stack-counter');
-            if (gameState.attackStack > 0) {
-                stackEl.style.display = 'block';
-                stackEl.innerText = `KOMBO ATAKU: +${gameState.attackStack} KART!`;
-            } else {
-                stackEl.style.display = 'none';
-            }
+            document.getElementById('current-color-indicator').innerText = `KOLOR: ${gameState.currentColor.toUpperCase()}`;
+            document.getElementById('current-color-indicator').style.color = `var(--${gameState.currentColor})`;
         }
     }
 
@@ -605,82 +517,68 @@
             const handEl = document.getElementById('my-hand');
             handEl.innerHTML = '';
 
-            const cardCounts = {};
-            data.hand.forEach(c => cardCounts[c.value] = (cardCounts[c.value] || 0) + 1);
-
             data.hand.forEach((card, idx) => {
                 const cardEl = document.createElement('div');
                 cardEl.className = `card ${card.color}`;
+                cardEl.innerHTML = `<div class="card-inner">${card.value}</div>`;
                 
-                let badgeHtml = cardCounts[card.value] > 1 ? `<div class="card-badge">x${cardCounts[card.value]}</div>` : '';
-                cardEl.innerHTML = `${badgeHtml}<div class="card-inner">${card.value}</div>`;
-                
-                cardEl.onclick = () => selectCard(idx, card, data.hand);
+                cardEl.onclick = () => validateAndPlay(idx, card, data.topCard, data.currentColor, data.attackStack, data.isMyTurn);
                 handEl.appendChild(cardEl);
             });
 
             const statusEl = document.getElementById('turn-status');
             const drawBtn = document.getElementById('draw-btn');
-            const unoBtn = document.getElementById('uno-btn');
-            const calloutBtn = document.getElementById('callout-uno-btn');
 
             if (data.isMyTurn) {
-                statusEl.innerText = data.attackStack > 0 ? `ODBIJAJ LUB DOBIERZ (+${data.attackStack})!` : "TWOJA TURA!";
+                statusEl.innerText = data.attackStack > 0 ? `ODBIJ LUB DOBIERZ +${data.attackStack}!` : "TWOJA TURA!";
                 statusEl.style.color = "var(--green)";
                 drawBtn.disabled = false;
                 drawBtn.innerText = data.attackStack > 0 ? `DOBIERZ +${data.attackStack} KART` : "DOBIERZ KARTĘ";
             } else {
-                statusEl.innerText = `Kolej: ${data.currentTurnName}`;
+                statusEl.innerText = `Ruch wykonuje: ${data.currentTurnName}`;
                 statusEl.style.color = "#fff";
                 drawBtn.disabled = true;
-                drawBtn.innerText = "DOBIERZ KARTĘ";
             }
 
-            unoBtn.style.display = data.hand.length <= 2 ? 'block' : 'none';
-            calloutBtn.style.display = data.someoneForgotUno ? 'block' : 'none';
+            document.getElementById('uno-btn').style.display = data.hand.length <= 2 ? 'block' : 'none';
+            document.getElementById('callout-uno-btn').style.display = data.someoneForgotUno ? 'block' : 'none';
         }
     }
 
-    function selectCard(index, selectedCard, fullHand) {
-        selectedSingleIndex = index;
-        matchingIndexesGroup = [];
-        
-        fullHand.forEach((c, i) => {
-            if (c.value === selectedCard.value) matchingIndexesGroup.push(i);
-        });
+    // WERYFIKACJA I ANIMACJA BŁĘDNEGO RUCHU (SHAKE)
+    function validateAndPlay(index, card, topCard, activeColor, attackStack, isMyTurn) {
+        if (!isMyTurn) return;
 
-        if (matchingIndexesGroup.length > 1) {
-            document.getElementById('multi-card-text').innerText = `Masz ${matchingIndexesGroup.length} karty o wartości ${selectedCard.value}!`;
-            document.getElementById('multi-card-modal').style.display = 'flex';
+        const cardEl = document.getElementById('my-hand').children[index];
+        let isValid = false;
+
+        if (attackStack > 0) {
+            if (card.value === '+2' || card.value === '+4') isValid = true;
         } else {
-            executePlay([index], selectedCard);
+            if (card.color === 'black' || card.color === activeColor || card.value === topCard.value) {
+                isValid = true;
+            }
         }
-    }
 
-    function confirmMultiPlay(playAll) {
-        document.getElementById('multi-card-modal').style.display = 'none';
-        const cardVal = document.getElementById('my-hand').children[selectedSingleIndex];
-        
-        if (playAll) {
-            executePlay(matchingIndexesGroup, null);
-        } else {
-            executePlay([selectedSingleIndex], null);
+        if (!isValid) {
+            // ANIMACJA SHAKE DLA BŁĘDNEJ KARTY
+            cardEl.classList.remove('shake-invalid');
+            void cardEl.offsetWidth;
+            cardEl.classList.add('shake-invalid');
+            return;
         }
-    }
 
-    function executePlay(indexes, cardObj) {
-        pendingCardIndexes = indexes;
-        const clickedCardEl = document.getElementById('my-hand').children[indexes[0]];
-        if (clickedCardEl) clickedCardEl.classList.add('animate-flyout');
+        // POPRAWNA KARTA - WYLOT
+        pendingCardIndexes = [index];
+        cardEl.classList.add('animate-flyout');
 
         setTimeout(() => {
-            const firstCard = cardObj || (document.getElementById('my-hand').children[indexes[0]]);
-            if (clickedCardEl && clickedCardEl.classList.contains('black')) {
+            if (card.color === 'black') {
                 document.getElementById('color-picker').style.display = 'flex';
             } else {
-                conn.send({ type: 'PLAY_CARDS', indexes: pendingCardIndexes });
+                conn.send({ type: 'PLAY_CARDS', indexes: [index] });
             }
-        }, 300);
+        }, 250);
     }
 
     function chooseColor(color) {
@@ -697,10 +595,6 @@
         document.getElementById(id).classList.add('active');
     }
     function showLog(text) { document.getElementById('game-log').innerText = text; }
-    function translateColor(color) {
-        const colors = { red: 'Czerwony', blue: 'Niebieski', green: 'Zielony', yellow: 'Żółty', black: 'Czarny' };
-        return colors[color] || color;
-    }
 </script>
 </body>
 </html>
