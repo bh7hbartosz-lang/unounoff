@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>UNO NEON OVERDRIVE</title>
+    <title>UNO OVERDRIVE ULTRA</title>
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
         :root {
@@ -13,110 +13,80 @@
             --yellow: #ffe600;
             --purple: #7000ff;
             --dark: #0a0518;
-            --glass: rgba(20, 10, 35, 0.85);
-            --glass-border: rgba(255, 0, 234, 0.3);
+            --glass: rgba(20, 10, 35, 0.88);
+            --glass-border: rgba(255, 0, 234, 0.35);
         }
 
-        * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
         
         body { 
-            margin: 0; 
-            background: #05020c;
-            color: #fff; 
-            overflow: hidden; 
-            height: 100vh;
-            height: -webkit-fill-available;
+            margin: 0; background: #05020c; color: #fff; overflow: hidden; height: 100vh; height: -webkit-fill-available;
         }
 
-        /* --- NOWE ANIMOWANE TŁO NEON OVERDRIVE --- */
         .neon-bg {
             position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 0; pointer-events: none;
-            background: 
-                radial-gradient(circle at 50% 30%, rgba(112, 0, 255, 0.35) 0%, transparent 70%),
-                radial-gradient(circle at 50% 80%, rgba(255, 0, 85, 0.25) 0%, transparent 50%),
-                linear-gradient(to bottom, #05020c 0%, #15082b 100%);
+            background: radial-gradient(circle at 50% 30%, rgba(112, 0, 255, 0.4) 0%, transparent 70%),
+                        radial-gradient(circle at 50% 80%, rgba(255, 0, 85, 0.3) 0%, transparent 50%),
+                        linear-gradient(to bottom, #05020c 0%, #15082b 100%);
+            transition: background 0.5s ease;
         }
 
         .neon-grid {
             position: absolute; width: 200%; height: 200%; top: -50%; left: -50%; z-index: 0; pointer-events: none;
-            background-image: 
-                linear-gradient(to right, rgba(0, 240, 255, 0.12) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255, 0, 234, 0.12) 1px, transparent 1px);
-            background-size: 60px 60px;
-            transform: perspective(500px) rotateX(60deg);
-            animation: moveGrid 8s linear infinite;
+            background-image: linear-gradient(to right, rgba(0, 240, 255, 0.12) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 0, 234, 0.12) 1px, transparent 1px);
+            background-size: 60px 60px; transform: perspective(500px) rotateX(60deg); animation: moveGrid 8s linear infinite;
         }
-
-        @keyframes moveGrid {
-            0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
-            100% { transform: perspective(500px) rotateX(60deg) translateY(60px); }
-        }
+        @keyframes moveGrid { 0% { transform: perspective(500px) rotateX(60deg) translateY(0); } 100% { transform: perspective(500px) rotateX(60deg) translateY(60px); } }
 
         .screen { display: none; padding: 15px; text-align: center; height: 100vh; flex-direction: column; justify-content: center; align-items: center; position: relative; z-index: 1; }
         .screen.active { display: flex; }
 
         h1 { 
-            font-size: 3rem; font-weight: 900;
-            background: linear-gradient(45deg, var(--red), #ff00ea, var(--blue));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            margin-bottom: 15px; text-transform: uppercase; letter-spacing: 4px;
+            font-size: 3rem; font-weight: 900; background: linear-gradient(45deg, var(--red), #ff00ea, var(--blue));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 4px;
             filter: drop-shadow(0 0 25px rgba(255, 0, 234, 0.8));
         }
 
         .glass-panel {
             background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border); border-radius: 24px; padding: 25px;
-            box-shadow: 0 0 40px rgba(112, 0, 255, 0.4), inset 0 0 15px rgba(255,255,255,0.05);
-            width: 100%; max-width: 440px;
+            box-shadow: 0 0 40px rgba(112, 0, 255, 0.4); width: 100%; max-width: 440px;
         }
 
-        label { display: block; text-align: left; font-weight: 800; color: var(--blue); margin: 8px 0 4px 5px; font-size: 0.9rem; letter-spacing: 1px; }
-
+        label { display: block; text-align: left; font-weight: 800; color: var(--blue); margin: 8px 0 4px 5px; font-size: 0.9rem; }
         input, select { 
             padding: 14px; font-size: 1rem; border-radius: 12px; border: 1px solid var(--glass-border); 
-            background: rgba(10, 5, 20, 0.8); color: #fff; margin-bottom: 10px; width: 100%; 
-            text-align: center; font-weight: bold; outline: none; transition: 0.3s;
+            background: rgba(10, 5, 20, 0.8); color: #fff; margin-bottom: 10px; width: 100%; text-align: center; font-weight: bold; outline: none;
         }
         
         .btn { 
-            padding: 16px 20px; font-size: 1rem; font-weight: 900; border-radius: 14px; border: none; 
-            cursor: pointer; color: #fff; background: linear-gradient(135deg, var(--purple), #3b0080); 
-            box-shadow: 0 0 20px rgba(112, 0, 255, 0.5); transition: all 0.2s; width: 100%; margin-bottom: 10px; 
-            text-transform: uppercase; letter-spacing: 1px;
+            padding: 16px 20px; font-size: 1rem; font-weight: 900; border-radius: 14px; border: none; cursor: pointer; color: #fff; 
+            background: linear-gradient(135deg, var(--purple), #3b0080); box-shadow: 0 0 20px rgba(112, 0, 255, 0.5); width: 100%; margin-bottom: 10px; text-transform: uppercase;
         }
         .btn:active { transform: scale(0.96); }
         .btn-green { background: linear-gradient(135deg, var(--green), #009933); color: #000; box-shadow: 0 0 20px rgba(0,255,102,0.4); }
         .btn-red { background: linear-gradient(135deg, var(--red), #80002b); box-shadow: 0 0 20px rgba(255,0,85,0.4); }
         .btn-yellow { background: linear-gradient(135deg, var(--yellow), #ff9900); color: #000; box-shadow: 0 0 20px rgba(255,230,0,0.4); }
 
-        .btn-remove {
-            background: linear-gradient(135deg, var(--red), #800022);
-            color: white; border: none; padding: 6px 12px; border-radius: 8px;
-            font-size: 0.8rem; font-weight: bold; cursor: pointer; transition: 0.2s;
-        }
-        .btn-remove:hover { transform: scale(1.05); }
+        .btn-remove { background: linear-gradient(135deg, var(--red), #800022); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-        .lobby-player-row {
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(0,0,0,0.5); padding: 10px 14px; border-radius: 12px;
-            margin-bottom: 8px; border: 1px solid var(--glass-border);
-        }
+        .lobby-player-row { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.5); padding: 10px 14px; border-radius: 12px; margin-bottom: 8px; border: 1px solid var(--glass-border); }
 
-        /* --- KARTY 3D --- */
+        /* --- DUŻE KARTY PC --- */
         .card { 
-            width: 110px; height: 165px; border-radius: 16px; border: 3px solid #ffffff; 
+            width: 140px; height: 210px; border-radius: 20px; border: 4px solid #ffffff; 
             display: flex; justify-content: center; align-items: center; position: relative; 
-            box-shadow: 0 12px 25px rgba(0,0,0,0.8); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; flex-shrink: 0;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8); cursor: pointer; transition: transform 0.2s; flex-shrink: 0;
         }
         .card::before {
-            content: ''; position: absolute; width: 84%; height: 78%;
-            background: rgba(0, 0, 0, 0.3); border-radius: 50%; transform: rotate(-28deg);
-            border: 2px dashed rgba(255,255,255,0.4);
+            content: ''; position: absolute; width: 84%; height: 78%; background: rgba(0, 0, 0, 0.3); border-radius: 50%; transform: rotate(-28deg); border: 2px dashed rgba(255,255,255,0.4);
         }
-        .card-inner {
-            position: relative; z-index: 2; font-size: 2.8rem; font-weight: 900; font-style: italic;
-            text-shadow: 2px 3px 0px rgba(0,0,0,0.8);
-        }
+        .card-inner { position: relative; z-index: 2; font-size: 3.8rem; font-weight: 900; font-style: italic; text-shadow: 3px 4px 0px rgba(0,0,0,0.8); }
+
+        /* KARTY TELEFON */
+        .mobile-card { width: 95px; height: 145px; border-radius: 14px; border: 3px solid #fff; }
+        .mobile-card .card-inner { font-size: 2.4rem; }
 
         .card.red { background: linear-gradient(135deg, #ff0055, #80002b); border-color: #ff6699; }
         .card.blue { background: linear-gradient(135deg, #00f0ff, #005b66); border-color: #80f8ff; }
@@ -125,72 +95,62 @@
         .card.black { background: linear-gradient(135deg, #18052b, #3c0066); border-color: var(--yellow); }
         .card.black::before { background: linear-gradient(45deg, var(--red), var(--yellow), var(--green), var(--blue)); opacity: 0.9; }
 
-        /* ANIMACJA ODŻUCENIA */
-        @keyframes shakeInvalid {
-            0%, 100% { transform: translateX(0) rotate(0deg); }
-            20% { transform: translateX(-15px) rotate(-8deg); border-color: var(--red); }
-            40% { transform: translateX(15px) rotate(8deg); border-color: var(--red); }
-            60% { transform: translateX(-10px) rotate(-4deg); }
-            80% { transform: translateX(10px) rotate(4deg); }
+        /* MULTI COMBO BANNER TELEFON */
+        .combo-box {
+            background: linear-gradient(135deg, var(--yellow), #ff8800); color: #000; padding: 10px; border-radius: 14px;
+            font-weight: 900; margin-bottom: 10px; display: none; width: 100%; box-shadow: 0 0 20px rgba(255,230,0,0.6);
         }
-        .shake-invalid { animation: shakeInvalid 0.45s ease-in-out !important; box-shadow: 0 0 25px var(--red) !important; }
 
-        /* ANIMACJA ZRZUCANIA NA STÓŁ */
+        /* EKRAN BLOKADY TELEFON */
+        .blocked-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10, 0, 20, 0.95);
+            z-index: 999; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 20px;
+        }
+        .blocked-icon { font-size: 5rem; animation: pulse 1s infinite alternate; }
+        @keyframes pulse { 0% { transform: scale(1); } 100% { transform: scale(1.2); } }
+
+        /* ANIMACJE STÓŁ PC */
         @keyframes dropCardToTable {
-            0% { transform: translateY(-250px) scale(2) rotate(-20deg); opacity: 0; filter: blur(8px); }
+            0% { transform: translateY(-300px) scale(2) rotate(-20deg); opacity: 0; filter: blur(8px); }
             100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; filter: blur(0); }
         }
         .animate-drop { animation: dropCardToTable 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 
-        /* WYLOT Z TELEFONU */
-        @keyframes flyOutFromHand {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-400px) scale(0.2); opacity: 0; }
-        }
+        @keyframes flyOutFromHand { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-400px) scale(0.2); opacity: 0; } }
         .animate-flyout { animation: flyOutFromHand 0.35s ease-in forwards !important; }
 
-        /* STÓŁ PC */
+        /* STÓŁ PC STYL */
         #pc-board { display: grid; grid-template-rows: auto 1fr auto; height: 100vh; padding: 20px; gap: 15px; width: 100%; max-width: 1300px; }
         .top-bar { display: flex; justify-content: space-between; align-items: center; background: var(--glass); padding: 15px 30px; border-radius: 20px; border: 1px solid var(--glass-border); }
         .room-code { font-size: 2rem; color: var(--yellow); font-weight: 900; letter-spacing: 3px; }
 
-        .table-center { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 15px; }
-        .cards-area { display: flex; gap: 40px; align-items: center; }
+        .table-center { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; }
+        .cards-area { display: flex; gap: 50px; align-items: center; }
 
         .deck-back { background: linear-gradient(135deg, #10002b, #240046) !important; border-color: var(--purple) !important; }
         .deck-back::before { background: var(--red) !important; }
-        .deck-back .card-inner { color: var(--yellow) !important; font-size: 1.5rem; }
+        .deck-back .card-inner { color: var(--yellow) !important; font-size: 2rem; }
 
-        /* WIDOK DLA ANDROIDA */
+        /* MOBILNY */
         #mobile-screen { padding: 0; justify-content: space-between; }
-        #mobile-board { 
-            display: flex; flex-direction: column; justify-content: space-between; 
-            height: 100vh; height: 100dvh; width: 100%; max-width: 450px; padding: 12px; box-sizing: border-box; 
-        }
+        #mobile-board { display: flex; flex-direction: column; justify-content: space-between; height: 100vh; height: 100dvh; width: 100%; max-width: 450px; padding: 12px; }
 
         .status-box { background: var(--glass); padding: 12px; border-radius: 16px; text-align: center; font-size: 1.1rem; font-weight: 900; border: 1px solid var(--glass-border); }
-        
-        .hand-container { 
-            display: flex; gap: 12px; overflow-x: auto; padding: 20px 10px; 
-            align-items: center; scroll-behavior: smooth; flex-grow: 1; margin: 10px 0;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .mobile-controls { width: 100%; padding-bottom: 10px; }
+        .hand-container { display: flex; gap: 12px; overflow-x: auto; padding: 20px 10px; align-items: center; flex-grow: 1; margin: 10px 0; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); justify-content: center; align-items: center; z-index: 100; }
         .color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 85%; max-width: 300px; }
         .color-btn { height: 100px; border-radius: 20px; border: 3px solid #fff; font-size: 1.2rem; font-weight: 900; cursor: pointer; text-transform: uppercase; }
 
-        #game-log { font-size: 1.8rem; color: var(--yellow); text-shadow: 0 0 20px rgba(255,230,0,0.8); min-height: 45px; text-align: center; font-weight: 900; }
-        .players-bar { display: flex; gap: 15px; justify-content: center; align-items: center; }
-        .player-node { background: var(--glass); padding: 15px 25px; border-radius: 18px; border: 2px solid transparent; min-width: 150px; }
-        .player-node.active-turn { border-color: var(--green); transform: translateY(-8px); box-shadow: 0 0 25px rgba(0,255,102,0.4); background: rgba(0,255,102,0.12); }
+        #game-log { font-size: 2rem; color: var(--yellow); text-shadow: 0 0 20px rgba(255,230,0,0.8); min-height: 50px; text-align: center; font-weight: 900; }
+        .players-bar { display: flex; gap: 20px; justify-content: center; align-items: center; }
+        .player-node { background: var(--glass); padding: 15px 30px; border-radius: 20px; border: 2px solid transparent; min-width: 170px; text-align: center; }
+        .player-node.active-turn { border-color: var(--green); transform: translateY(-10px); box-shadow: 0 0 30px rgba(0,255,102,0.5); background: rgba(0,255,102,0.15); }
     </style>
 </head>
 <body>
 
-    <div class="neon-bg"></div>
+    <div class="neon-bg" id="main-bg"></div>
     <div class="neon-grid"></div>
 
     <!-- 1. START -->
@@ -211,13 +171,6 @@
         <h1>⚙️ LOBBY GRY</h1>
         <div class="glass-panel">
             <div style="font-size: 1.3rem; font-weight: 900; margin-bottom: 10px;">KOD POKOJU: <span id="lobby-room-code" style="color:var(--yellow)">----</span></div>
-            
-            <label>TRUDNOŚĆ GRY:</label>
-            <select id="difficulty-select">
-                <option value="easy">💚 ŁATWY</option>
-                <option value="medium" selected>💛 ŚREDNI</option>
-                <option value="hard">🔥 TRUDNY</option>
-            </select>
 
             <label>LICZBA KART NA START:</label>
             <select id="cards-count-select">
@@ -238,7 +191,7 @@
         <div id="pc-board">
             <div class="top-bar">
                 <div>KOD: <span id="display-room-code" class="room-code">----</span></div>
-                <div id="difficulty-tag" style="font-weight: 900; color: var(--blue);"></div>
+                <div id="deck-left-count" style="font-weight: 900; color: var(--blue); font-size: 1.3rem;">KART W TALII: 0</div>
             </div>
 
             <div class="table-center">
@@ -247,7 +200,7 @@
                     <div class="card deck-back"><div class="card-inner">UNO</div></div>
                     <div id="top-card" class="card red"><div class="card-inner">?</div></div>
                 </div>
-                <div id="current-color-indicator" style="font-size: 1.3rem; font-weight: 900;"></div>
+                <div id="current-color-indicator" style="font-size: 1.6rem; font-weight: 900;"></div>
             </div>
 
             <div id="players-list" class="players-bar"></div>
@@ -259,14 +212,27 @@
         <div id="mobile-board">
             <div class="status-box" id="turn-status">Łączenie...</div>
             
+            <div id="combo-box" class="combo-box">
+                <span id="combo-text">Możesz wyłożyć combo!</span>
+                <button class="btn btn-green" style="margin-top:8px; margin-bottom:0;" onclick="playCombo()">WYŁÓŻ WSZYSTKIE!</button>
+            </div>
+
             <div id="my-hand" class="hand-container"></div>
 
             <div class="mobile-controls">
+                <button class="btn btn-green" id="play-drawn-btn" onclick="playDrawnCard()" style="display:none;">ZAGRAJ DOBRANĄ KARTĘ!</button>
                 <button class="btn btn-red" id="callout-uno-btn" onclick="calloutNoUno()" style="display:none;">🚨 ZGŁOŚ BRAK UNO! 🚨</button>
                 <button class="btn btn-yellow" id="uno-btn" onclick="sayUno()" style="display:none;">🔥 KRZYCZ UNO! 🔥</button>
                 <button class="btn btn-red" id="draw-btn" onclick="drawCard()" disabled>DOBIERZ KARTĘ</button>
             </div>
         </div>
+    </div>
+
+    <!-- EKRAN BLOKADY MOBILNY -->
+    <div id="blocked-overlay" class="blocked-overlay">
+        <div class="blocked-icon">🚫</div>
+        <h2 id="blocked-title" style="color:var(--red); font-size: 1.8rem; margin-top: 15px;">ZABLOKOWANY!</h2>
+        <p id="blocked-desc" style="font-size: 1.2rem; text-align: center; color: #fff;"></p>
     </div>
 
     <!-- 5. COLOR PICKER -->
@@ -282,6 +248,8 @@
 <script>
     let peer = null, conn = null, connections = [], isHost = false;
     let pendingCardIndexes = [];
+    let detectedComboIndexes = [];
+    let lastDrawnIndex = null;
 
     const PEER_CONFIG = {
         debug: 1,
@@ -290,7 +258,7 @@
 
     let gameState = { 
         players: [], deck: [], topCard: null, currentColor: null, 
-        currentTurn: 0, direction: 1, started: false, attackStack: 0, difficulty: 'medium' 
+        currentTurn: 0, direction: 1, started: false, attackStack: 0
     };
 
     function setStatus(msg) { document.getElementById('connection-status').innerText = msg; }
@@ -300,7 +268,8 @@
             window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'pl-PL';
-            utterance.rate = 1.05;
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
 
             const voices = window.speechSynthesis.getVoices();
             const plVoice = voices.find(v => v.lang.includes('pl') || v.lang.includes('PL'));
@@ -345,9 +314,7 @@
         peer.on('connection', (c) => {
             connections.push(c);
             c.on('data', (data) => handleHostMessage(c, data));
-            c.on('close', () => {
-                removePlayerByPeerId(c.peer, false);
-            });
+            c.on('close', () => { removePlayerByPeerId(c.peer, false); });
         });
     }
 
@@ -370,7 +337,7 @@
 
             conn.on('data', (data) => handleClientMessage(data));
             conn.on('close', () => {
-                alert('Zostałeś rozłączony lub usunięty z pokoju!');
+                alert('Zostałeś rozłączony!');
                 location.reload();
             });
         });
@@ -378,9 +345,7 @@
 
     function kickPlayer(peerId) {
         const targetConn = connections.find(c => c.peer === peerId);
-        if (targetConn) {
-            targetConn.close();
-        }
+        if (targetConn) targetConn.close();
         removePlayerByPeerId(peerId, true);
     }
 
@@ -390,15 +355,9 @@
             const removedPlayer = gameState.players[pIndex];
             gameState.players.splice(pIndex, 1);
             connections = connections.filter(c => c.peer !== peerId);
-            
-            if(manualKick) {
-                speakText(`Gracz ${removedPlayer.name} został usunięty z pokoju.`);
-            }
-
+            if(manualKick) speakText(`Gracz ${removedPlayer.name} został usunięty z pokoju.`);
             updateLobbyUI();
-            if (gameState.started) {
-                broadcastState();
-            }
+            if (gameState.started) broadcastState();
         }
     }
 
@@ -417,17 +376,11 @@
         document.getElementById('start-game-btn').style.display = gameState.players.length >= 2 ? 'block' : 'none';
     }
 
-    function formatCardNameForSpeech(card) {
-        const colorNames = { red: 'czerwoną', blue: 'niebieską', green: 'zieloną', yellow: 'żółtą', black: 'czarną' };
-        const valNames = { '🚫': 'blokadę', '🔄': 'zmianę kierunku', '+2': 'plus dwa', '+4': 'plus cztery', '🎨': 'wybór koloru' };
-        return `${colorNames[card.color] || ''} ${valNames[card.value] || card.value}`;
-    }
-
     function handleHostMessage(connection, data) {
         let player = gameState.players.find(p => p.id === connection.peer);
 
         if (data.type === 'JOIN') {
-            if (!player) gameState.players.push({ id: connection.peer, name: data.name, hand: [], declaredUno: false });
+            if (!player) gameState.players.push({ id: connection.peer, name: data.name, hand: [], declaredUno: false, blockedRounds: 0 });
             updateLobbyUI();
             broadcastState();
         }
@@ -440,23 +393,43 @@
                 data.indexes.sort((a,b) => b - a).forEach(i => player.hand.splice(i, 1));
 
                 gameState.topCard = playedCards[playedCards.length - 1];
-                gameState.currentColor = data.chosenColor || (gameState.topCard.color !== 'black' ? gameState.topCard.color : null);
+                gameState.currentColor = data.chosenColor || (gameState.topCard.color !== 'black' ? gameState.topCard.color : gameState.currentColor);
 
-                let voiceText = `${player.name} rzuca ${formatCardNameForSpeech(firstCard)}!`;
+                let blocksCount = playedCards.filter(c => c.value === '🚫').length;
+                let reverseCount = playedCards.filter(c => c.value === '🔄').length;
 
                 playedCards.forEach(c => {
                     if (c.value === '+2') gameState.attackStack += 2;
                     if (c.value === '+4') gameState.attackStack += 4;
                 });
 
+                if (reverseCount % 2 !== 0) {
+                    gameState.direction *= -1;
+                }
+
                 if (player.hand.length === 0) {
                     showLog(`🏆 ${player.name} WYGRYWA!`);
                     speakText(`Gracz ${player.name} wygrywa całą grę! Brawo!`);
                     gameState.started = false;
                 } else {
-                    showLog(voiceText);
-                    speakText(voiceText);
-                    if (firstCard.value === '🚫') nextTurn();
+                    if (blocksCount > 0) {
+                        let targetPlayerIndex = (gameState.currentTurn + gameState.direction + gameState.players.length) % gameState.players.length;
+                        let targetPlayer = gameState.players[targetPlayerIndex];
+                        targetPlayer.blockedRounds += blocksCount;
+                        
+                        let msg = `${player.name} zablokował gracza ${targetPlayer.name} na ${blocksCount} ${blocksCount === 1 ? 'rundę' : 'rundy'}!`;
+                        showLog(msg);
+                        speakText(msg);
+                    } else if (reverseCount > 0) {
+                        let nextP = gameState.players[(gameState.currentTurn + gameState.direction + gameState.players.length) % gameState.players.length];
+                        let msg = `Kolejka została zmieniona i teraz zaczyna gracz ${nextP.name}!`;
+                        showLog(msg);
+                        speakText(msg);
+                    } else {
+                        let msg = `${player.name} rzuca kartę!`;
+                        showLog(msg);
+                    }
+
                     nextTurn();
                 }
 
@@ -470,7 +443,7 @@
                 drawMultiple(player, drawCount);
                 gameState.attackStack = 0;
                 
-                let msg = `${player.name} dobiera ${drawCount === 1 ? 'jedną kartę' : drawCount + ' karty'}.`;
+                let msg = `${player.name} dobiera karty.`;
                 showLog(msg);
                 speakText(msg);
 
@@ -516,6 +489,7 @@
             p.hand = [];
             drawMultiple(p, count);
             p.declaredUno = false;
+            p.blockedRounds = 0;
         });
 
         do { gameState.topCard = gameState.deck.pop(); } while (gameState.topCard.color === 'black');
@@ -531,6 +505,17 @@
 
     function nextTurn() {
         gameState.currentTurn = (gameState.currentTurn + gameState.direction + gameState.players.length) % gameState.players.length;
+        
+        let currPlayer = gameState.players[gameState.currentTurn];
+        if (currPlayer && currPlayer.blockedRounds > 0) {
+            currPlayer.blockedRounds--;
+            if (currPlayer.blockedRounds > 0) {
+                speakText(`Gracz ${currPlayer.name} jest jeszcze zablokowany na 1 rundę.`);
+            } else {
+                speakText(`Blokada gracza ${currPlayer.name} minęła.`);
+            }
+            nextTurn();
+        }
     }
 
     function broadcastState(triggerAnimation = false) {
@@ -547,17 +532,21 @@
                 isMyTurn: gameState.players[gameState.currentTurn]?.id === c.peer,
                 currentTurnName: gameState.players[gameState.currentTurn]?.name,
                 attackStack: gameState.attackStack,
+                blockedRounds: player ? player.blockedRounds : 0,
                 someoneForgotUno: someoneForgotUno && (player ? player.hand.length !== 1 : true)
             });
         });
     }
 
     function renderPCBoard(triggerAnimation = false) {
+        document.getElementById('deck-left-count').innerText = `KART W TALII: ${gameState.deck.length}`;
+
         const list = document.getElementById('players-list');
         list.innerHTML = gameState.players.map((p, idx) => `
             <div class="player-node ${idx === gameState.currentTurn ? 'active-turn' : ''}">
-                <div style="font-weight:900;">${p.name} ${p.declaredUno ? '🔥' : ''}</div>
-                <div style="color:#aaa; font-size:0.9rem;">🎴 ${p.hand.length} kart</div>
+                <div style="font-size: 1.3rem; font-weight:900;">${p.name} ${p.declaredUno ? '🔥' : ''}</div>
+                <div style="color:var(--yellow); font-size:1.1rem; font-weight:bold;">🎴 ${p.hand.length} kart</div>
+                ${p.blockedRounds > 0 ? `<div style="color:var(--red); font-weight:bold;">🚫 BLOKADA (${p.blockedRounds})</div>` : ''}
             </div>
         `).join('');
 
@@ -572,7 +561,7 @@
                 topCardEl.classList.add('animate-drop');
             }
 
-            document.getElementById('current-color-indicator').innerText = `KOLOR: ${gameState.currentColor.toUpperCase()}`;
+            document.getElementById('current-color-indicator').innerText = `WYBRANY KOLOR: ${gameState.currentColor.toUpperCase()}`;
             document.getElementById('current-color-indicator').style.color = `var(--${gameState.currentColor})`;
         }
     }
@@ -582,11 +571,40 @@
             const handEl = document.getElementById('my-hand');
             handEl.innerHTML = '';
 
+            // Wykrywanie wielokrotnych kart (Combo)
+            let valueCounts = {};
+            data.hand.forEach((c, idx) => {
+                if (c.color !== 'black') {
+                    if (!valueCounts[c.value]) valueCounts[c.value] = [];
+                    valueCounts[c.value].push(idx);
+                }
+            });
+
+            let foundComboValue = Object.keys(valueCounts).find(val => valueCounts[val].length > 1);
+            const comboBox = document.getElementById('combo-box');
+
+            if (foundComboValue && data.isMyTurn) {
+                detectedComboIndexes = valueCounts[foundComboValue];
+                document.getElementById('combo-text').innerText = `Czy chcesz wyłożyć ${detectedComboIndexes.length}x karta z numerem ${foundComboValue}?`;
+                comboBox.style.display = 'block';
+            } else {
+                comboBox.style.display = 'none';
+            }
+
+            // Ekran blokady na telefonie
+            const blockedOverlay = document.getElementById('blocked-overlay');
+            if (data.blockedRounds > 0) {
+                blockedOverlay.style.display = 'flex';
+                document.getElementById('blocked-desc').innerText = `Zostałeś zablokowany! Odczekaj ${data.blockedRounds} ${data.blockedRounds === 1 ? 'rundę' : 'rundy'}.`;
+            } else {
+                blockedOverlay.style.display = 'none';
+            }
+
+            // Renderowanie dłoni
             data.hand.forEach((card, idx) => {
                 const cardEl = document.createElement('div');
-                cardEl.className = `card ${card.color}`;
+                cardEl.className = `card mobile-card ${card.color}`;
                 cardEl.innerHTML = `<div class="card-inner">${card.value}</div>`;
-                
                 cardEl.onclick = () => validateAndPlay(idx, card, data.topCard, data.currentColor, data.attackStack, data.isMyTurn);
                 handEl.appendChild(cardEl);
             });
@@ -598,14 +616,14 @@
                 statusEl.innerText = data.attackStack > 0 ? `ODBIJ LUB DOBIERZ +${data.attackStack}!` : "TWOJA TURA!";
                 statusEl.style.color = "var(--green)";
                 drawBtn.disabled = false;
-                drawBtn.innerText = data.attackStack > 0 ? `DOBIERZ +${data.attackStack} KART` : "DOBIERZ KARTĘ";
             } else {
                 statusEl.innerText = `Ruch wykonuje: ${data.currentTurnName}`;
                 statusEl.style.color = "#fff";
                 drawBtn.disabled = true;
             }
 
-            document.getElementById('uno-btn').style.display = data.hand.length <= 2 ? 'block' : 'none';
+            // WARUNEK: UNO TYLKO GDY MASZ DOKŁADNIE 1 KARTĘ
+            document.getElementById('uno-btn').style.display = data.hand.length === 1 ? 'block' : 'none';
             document.getElementById('callout-uno-btn').style.display = data.someoneForgotUno ? 'block' : 'none';
         }
     }
@@ -613,34 +631,28 @@
     function validateAndPlay(index, card, topCard, activeColor, attackStack, isMyTurn) {
         if (!isMyTurn) return;
 
-        const cardEl = document.getElementById('my-hand').children[index];
         let isValid = false;
-
         if (attackStack > 0) {
             if (card.value === '+2' || card.value === '+4') isValid = true;
         } else {
-            if (card.color === 'black' || card.color === activeColor || card.value === topCard.value) {
-                isValid = true;
-            }
+            if (card.color === 'black' || card.color === activeColor || card.value === topCard.value) isValid = true;
         }
 
-        if (!isValid) {
-            cardEl.classList.remove('shake-invalid');
-            void cardEl.offsetWidth;
-            cardEl.classList.add('shake-invalid');
-            return;
-        }
+        if (!isValid) return;
 
         pendingCardIndexes = [index];
-        cardEl.classList.add('animate-flyout');
+        if (card.color === 'black') {
+            document.getElementById('color-picker').style.display = 'flex';
+        } else {
+            conn.send({ type: 'PLAY_CARDS', indexes: [index] });
+        }
+    }
 
-        setTimeout(() => {
-            if (card.color === 'black') {
-                document.getElementById('color-picker').style.display = 'flex';
-            } else {
-                conn.send({ type: 'PLAY_CARDS', indexes: [index] });
-            }
-        }, 250);
+    function playCombo() {
+        if (detectedComboIndexes.length > 0) {
+            conn.send({ type: 'PLAY_CARDS', indexes: detectedComboIndexes });
+            document.getElementById('combo-box').style.display = 'none';
+        }
     }
 
     function chooseColor(color) {
