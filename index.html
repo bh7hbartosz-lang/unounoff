@@ -73,6 +73,19 @@
         .btn-red { background: linear-gradient(135deg, var(--red), #b3003b); box-shadow: 0 0 20px rgba(255,42,109,0.4); }
         .btn-yellow { background: linear-gradient(135deg, var(--yellow), #ff8800); color: #000; box-shadow: 0 0 20px rgba(255,184,0,0.4); }
 
+        .btn-remove {
+            background: linear-gradient(135deg, var(--red), #800022);
+            color: white; border: none; padding: 6px 12px; border-radius: 8px;
+            font-size: 0.8rem; font-weight: bold; cursor: pointer; transition: 0.2s;
+        }
+        .btn-remove:hover { transform: scale(1.05); }
+
+        .lobby-player-row {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.4); padding: 10px 14px; border-radius: 12px;
+            margin-bottom: 8px; border: 1px solid var(--glass-border);
+        }
+
         /* --- KARTY 3D --- */
         .card { 
             width: 110px; height: 165px; border-radius: 16px; border: 3px solid #ffffff; 
@@ -132,7 +145,7 @@
         .deck-back::before { background: var(--red) !important; }
         .deck-back .card-inner { color: var(--yellow) !important; font-size: 1.5rem; }
 
-        /* WIDOK DLA ANDROIDA (NIZAWODNY USTAWIONY UKŁAD) */
+        /* WIDOK DLA ANDROIDA */
         #mobile-screen { padding: 0; justify-content: space-between; }
         #mobile-board { 
             display: flex; flex-direction: column; justify-content: space-between; 
@@ -196,7 +209,8 @@
                 <option value="7" selected>🎴 7 Kart</option>
             </select>
 
-            <div id="lobby-players-list" style="margin: 15px 0; text-align: left; font-weight: bold; color: var(--green);"></div>
+            <label>PODŁĄCZENI GRACZE:</label>
+            <div id="lobby-players-list" style="margin: 15px 0; max-height: 160px; overflow-y: auto;"></div>
 
             <button class="btn btn-green" id="start-game-btn" onclick="startGame()" style="display:none;">ROZPOCZNIJ GRĘ</button>
         </div>
@@ -264,7 +278,6 @@
 
     function setStatus(msg) { document.getElementById('connection-status').innerText = msg; }
 
-    // DEDYKOWANY NATURALNY LEKTOR Z ODMIANĄ SŁÓW
     function speakText(text) {
         if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
@@ -272,7 +285,6 @@
             utterance.lang = 'pl-PL';
             utterance.rate = 1.05;
 
-            // Wybranie najlepszego głosu pl-PL
             const voices = window.speechSynthesis.getVoices();
             const plVoice = voices.find(v => v.lang.includes('pl') || v.lang.includes('PL'));
             if(plVoice) utterance.voice = plVoice;
@@ -317,9 +329,7 @@
             connections.push(c);
             c.on('data', (data) => handleHostMessage(c, data));
             c.on('close', () => {
-                gameState.players = gameState.players.filter(p => p.id !== c.peer);
-                updateLobbyUI();
-                broadcastState();
+                removePlayerByPeerId(c.peer, false);
             });
         });
     }
@@ -342,16 +352,55 @@
             });
 
             conn.on('data', (data) => handleClientMessage(data));
+            conn.on('close', () => {
+                alert('Zostałeś rozłączony lub usunięty z pokoju!');
+                location.reload();
+            });
         });
+    }
+
+    // USUWANIE GRACZY PRZEZ HOSTA
+    function kickPlayer(peerId) {
+        const targetConn = connections.find(c => c.peer === peerId);
+        if (targetConn) {
+            targetConn.close();
+        }
+        removePlayerByPeerId(peerId, true);
+    }
+
+    function removePlayerByPeerId(peerId, manualKick = false) {
+        const pIndex = gameState.players.findIndex(p => p.id === peerId);
+        if (pIndex !== -1) {
+            const removedPlayer = gameState.players[pIndex];
+            gameState.players.splice(pIndex, 1);
+            connections = connections.filter(c => c.peer !== peerId);
+            
+            if(manualKick) {
+                speakText(`Gracz ${removedPlayer.name} został usunięty z pokoju.`);
+            }
+
+            updateLobbyUI();
+            if (gameState.started) {
+                broadcastState();
+            }
+        }
     }
 
     function updateLobbyUI() {
         const list = document.getElementById('lobby-players-list');
-        list.innerHTML = gameState.players.map((p, i) => `<div>Gracz ${i+1}: ${p.name} ✅</div>`).join('');
+        if (gameState.players.length === 0) {
+            list.innerHTML = `<div style="color:#aaa; text-align:center;">Oczekiwanie na graczy...</div>`;
+        } else {
+            list.innerHTML = gameState.players.map((p) => `
+                <div class="lobby-player-row">
+                    <span style="font-weight:bold; color:var(--green);">${p.name} ✅</span>
+                    <button class="btn-remove" onclick="kickPlayer('${p.id}')">USUŃ ❌</button>
+                </div>
+            `).join('');
+        }
         document.getElementById('start-game-btn').style.display = gameState.players.length >= 2 ? 'block' : 'none';
     }
 
-    // ODMIANA KOLORÓW I KART DLA LEKTORA
     function formatCardNameForSpeech(card) {
         const colorNames = { red: 'czerwoną', blue: 'niebieską', green: 'zieloną', yellow: 'żółtą', black: 'czarną' };
         const valNames = { '🚫': 'blokadę', '🔄': 'zmianę kierunku', '+2': 'plus dwa', '+4': 'plus cztery', '🎨': 'wybór koloru' };
@@ -368,7 +417,7 @@
         }
 
         if (data.type === 'PLAY_CARDS') {
-            if (gameState.players[gameState.currentTurn].id === connection.peer) {
+            if (gameState.players[gameState.currentTurn]?.id === connection.peer) {
                 const playedCards = data.indexes.map(i => player.hand[i]);
                 const firstCard = playedCards[0];
 
@@ -400,7 +449,7 @@
         }
 
         if (data.type === 'DRAW_CARD') {
-            if (gameState.players[gameState.currentTurn].id === connection.peer) {
+            if (gameState.players[gameState.currentTurn]?.id === connection.peer) {
                 let drawCount = gameState.attackStack > 0 ? gameState.attackStack : 1;
                 drawMultiple(player, drawCount);
                 gameState.attackStack = 0;
@@ -545,7 +594,6 @@
         }
     }
 
-    // WERYFIKACJA I ANIMACJA BŁĘDNEGO RUCHU (SHAKE)
     function validateAndPlay(index, card, topCard, activeColor, attackStack, isMyTurn) {
         if (!isMyTurn) return;
 
@@ -561,14 +609,12 @@
         }
 
         if (!isValid) {
-            // ANIMACJA SHAKE DLA BŁĘDNEJ KARTY
             cardEl.classList.remove('shake-invalid');
             void cardEl.offsetWidth;
             cardEl.classList.add('shake-invalid');
             return;
         }
 
-        // POPRAWNA KARTA - WYLOT
         pendingCardIndexes = [index];
         cardEl.classList.add('animate-flyout');
 
