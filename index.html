@@ -3,6 +3,646 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wakacyjne Makao / UNO - Ultimate Edition</title>
+  
+  <!-- Czcionka Google Fonts z obsługą polskich znaków -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    
+    body {
+      font-family: 'Roboto', sans-serif;
+      /* Wakacyjne tło: Tropikalny zachód słońca / Plaża */
+      background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 40%, #86a8e7 70%, #91eae4 100%);
+      background-size: 200% 200%;
+      animation: summerSky 15s ease infinite;
+      color: white;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    @keyframes summerSky {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* MODALE I NAKŁADKI SETUPU */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      z-index: 9999;
+    }
+
+    .config-box {
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      padding: 30px;
+      border-radius: 25px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      width: 320px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+
+    label { font-size: 14px; color: #fff; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+    
+    input {
+      padding: 12px;
+      border-radius: 12px;
+      border: none;
+      background: rgba(255, 255, 255, 0.9);
+      color: #333;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+      text-transform: uppercase;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .btn-summer {
+      padding: 14px 28px;
+      font-size: 18px;
+      font-weight: 900;
+      background: linear-gradient(45deg, #ff4e50, #f9d423);
+      border: none;
+      border-radius: 25px;
+      color: white;
+      cursor: pointer;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+      box-shadow: 0 8px 20px rgba(255, 78, 80, 0.4);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-summer:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 12px 25px rgba(255, 78, 80, 0.6); }
+    .btn-summer:active { transform: translateY(1px); }
+
+    /* --- WIDOK GŁÓWNEGO EKRANU --- */
+    #main-screen {
+      display: none;
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    .room-header {
+      position: absolute;
+      top: 20px; left: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(5px);
+      padding: 12px 24px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.4);
+      font-weight: bold;
+      font-size: 18px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    /* AVATARY GRACZY NA KRAWĘDZIACH */
+    .player-slot {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(10px);
+      padding: 15px 25px;
+      border-radius: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      z-index: 5;
+      min-width: 140px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+      transition: all 0.3s;
+    }
+    .player-slot.dealer { 
+      border-color: #f9d423; 
+      box-shadow: 0 0 25px #f9d423; 
+      background: rgba(249, 212, 35, 0.3);
+    }
+
+    #p-avatar-0 { bottom: 30px; left: 50%; transform: translateX(-50%); } 
+    #p-avatar-1 { left: 30px; top: 50%; transform: translateY(-50%); }   
+    #p-avatar-2 { top: 30px; left: 50%; transform: translateX(-50%); }    
+    #p-avatar-3 { right: 30px; top: 50%; transform: translateY(-50%); }  
+
+    #center-board {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      gap: 50px;
+      z-index: 10;
+      align-items: center;
+    }
+
+    /* WAKACYJNE STYLIZOWANE KARTY */
+    .card {
+      width: 90px;
+      height: 140px;
+      border-radius: 12px;
+      border: 3px solid white;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 8px;
+      font-weight: 900;
+      position: relative;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+      overflow: hidden;
+    }
+
+    /* Kolory słonecznego lata */
+    .card.red { background: linear-gradient(135deg, #ff416c, #ff4b2b); color: white; }
+    .card.blue { background: linear-gradient(135deg, #00c6ff, #0072ff); color: white; }
+    .card.green { background: linear-gradient(135deg, #11998e, #38ef7d); color: white; }
+    .card.yellow { background: linear-gradient(135deg, #f8002f, #00c6ff); color: white; } /* Soczysty żółty/sunset */
+    .card.yellow-pure { background: linear-gradient(135deg, #ffe000, #799f0c); color: #222; }
+    .card.black { background: linear-gradient(135deg, #3a7bd5, #3a6073); color: white; }
+    
+    /* Rewers karty (Wzór palmy / letni rewers) */
+    .card.back { 
+      background: radial-gradient(circle, #ff7e5f 0%, #feb47b 100%);
+      border: 3px solid #fff;
+    }
+    .card.back::after {
+      content: '🌴';
+      font-size: 35px;
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .card-val-top { align-self: flex-start; font-size: 18px; }
+    .card-val-bot { align-self: flex-end; transform: rotate(180deg); font-size: 18px; }
+    
+    /* Tekst idealnie mieszczący się w karcie */
+    .card-center-text {
+      font-size: 11px;
+      text-align: center;
+      text-transform: uppercase;
+      font-weight: 900;
+      word-wrap: break-word;
+      line-height: 1.1;
+      padding: 0 2px;
+      max-width: 100%;
+    }
+
+    /* ANIMACJE LOTU I TASOWANIA */
+    .animated-card {
+      position: absolute;
+      z-index: 1000;
+      transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      pointer-events: none;
+    }
+
+    .shuffling-deck {
+      animation: summerShuffle 0.25s infinite alternate;
+    }
+
+    @keyframes summerShuffle {
+      0% { transform: rotate(-15deg) scale(1.1); }
+      100% { transform: rotate(15deg) scale(1.1); }
+    }
+
+    /* --- WIDOK TELEFONU --- */
+    #phone-screen {
+      display: none;
+      width: 100vw;
+      height: 100vh;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 25px 15px;
+    }
+
+    #phone-hand {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+    }
+
+    #phone-hand .card {
+      width: 95px;
+      height: 145px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    #phone-hand .card:active {
+      transform: scale(0.9);
+    }
+
+    .card-throw-phone {
+      transform: translateY(-700px) scale(0.2) rotate(20deg) !important;
+      opacity: 0 !important;
+      transition: all 0.5s cubic-bezier(0.6, -0.28, 0.735, 0.045) !important;
+    }
+
+    #dealer-btn-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 15px 25px;
+      border-radius: 20px;
+      backdrop-filter: blur(5px);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. WYBÓR ROLI EKRANU -->
+  <div id="mode-selector" class="modal-overlay">
+    <h1 style="text-shadow: 0 4px 10px rgba(0,0,0,0.3);">☀️ WAKACYJNE MAKAO 🌴</h1>
+    <p>Wybierz tryb dla tego urządzenia:</p>
+    <button class="btn-summer" onclick="openMainSetup()">Główny Ekran (TV / Stół)</button>
+    <button class="btn-summer" onclick="openPhoneSetup()">Gracz (Telefon)</button>
+  </div>
+
+  <!-- 2. TWORZENIE STOŁU (GŁÓWNY EKRAN) -->
+  <div id="main-setup-modal" class="modal-overlay" style="display: none;">
+    <div class="config-box">
+      <h3>Otwórz Letni Stół</h3>
+      <label>Kod Pokoju:</label>
+      <input type="text" id="created-room-code" value="LATO26" maxlength="6">
+      <button class="btn-summer" onclick="startMainScreen()">Start Stolika</button>
+    </div>
+  </div>
+
+  <!-- 3. DOŁĄCZANIE (TELEFON) -->
+  <div id="phone-setup-modal" class="modal-overlay" style="display: none;">
+    <div class="config-box">
+      <h3>Dołącz do Plaży</h3>
+      <label>Twój Nick:</label>
+      <input type="text" id="player-nickname" placeholder="np. Ania" value="Plażowicz">
+      
+      <label>Kod Pokoju:</label>
+      <input type="text" id="join-room-code" value="LATO26" maxlength="6">
+
+      <button class="btn-summer" onclick="joinGameFromPhone()">Wchodzę do gry!</button>
+    </div>
+  </div>
+
+  <!-- 4. GŁÓWNY EKRAN (STÓŁ) -->
+  <div id="main-screen">
+    <div class="room-header">
+      🌴 Pokój: <span id="display-room-code">LATO26</span>
+    </div>
+
+    <!-- Avatary na krawędziach -->
+    <div id="p-avatar-0" class="player-slot" style="display:none;"><span class="p-name"></span><small class="p-cards"></small></div>
+    <div id="p-avatar-1" class="player-slot" style="display:none;"><span class="p-name"></span><small class="p-cards"></small></div>
+    <div id="p-avatar-2" class="player-slot" style="display:none;"><span class="p-name"></span><small class="p-cards"></small></div>
+    <div id="p-avatar-3" class="player-slot" style="display:none;"><span class="p-name"></span><small class="p-cards"></small></div>
+
+    <div id="center-board">
+      <div style="text-align: center;">
+        <small style="font-weight: bold;">Talia</small>
+        <div id="main-deck" class="card back"></div>
+      </div>
+      <div style="text-align: center;">
+        <small style="font-weight: bold;">Stos</small>
+        <div id="main-discard"></div>
+      </div>
+    </div>
+
+    <!-- Ruletka na środku -->
+    <div id="roulette-banner" style="display:none; position: absolute; top: 25%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.75); backdrop-filter: blur(10px); padding: 25px 50px; border-radius: 25px; border: 3px solid #f9d423; text-align: center; z-index: 100;">
+      <h2 id="roulette-text" style="color: #f9d423; font-size: 28px;">🎲 Losowanie Krupiera...</h2>
+    </div>
+  </div>
+
+  <!-- 5. EKRAN TELEFONU -->
+  <div id="phone-screen">
+    <div style="text-align: center;">
+      <h2 id="phone-user-title" style="text-shadow: 0 2px 4px rgba(0,0,0,0.3);">Twoja Ręka</h2>
+      <p id="status-info" style="font-size: 14px; font-weight: bold; color: #fff; opacity: 0.9;">Czekaj na pozostałych graczy...</p>
+    </div>
+
+    <!-- Przycisk Krupiera na Telefonie -->
+    <div id="dealer-btn-container">
+      <p style="color: #f9d423; font-weight: 900; font-size: 18px; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Jesteś Krupierem! 🌴</p>
+      <button class="btn-summer" onclick="triggerDealerAction()">Potasuj i Rozdaj Karty</button>
+    </div>
+
+    <div id="phone-hand"></div>
+    <div></div>
+  </div>
+
+  <script>
+    const COLORS = ['red', 'blue', 'green', 'yellow-pure'];
+    const VALUES = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+2', 'Pomiń ruch', 'Zmiana koloru'];
+    
+    const channel = new BroadcastChannel('summer_makao_channel');
+
+    let currentRoomCode = '';
+    let myNickname = '';
+    let isMainScreen = false;
+    
+    let joinedPlayers = [];
+    let dealerIndex = -1;
+    let topDiscardCard = null;
+    let myPhoneCards = [];
+
+    function openMainSetup() {
+      document.getElementById('mode-selector').style.display = 'none';
+      document.getElementById('main-setup-modal').style.display = 'flex';
+    }
+
+    function openPhoneSetup() {
+      document.getElementById('mode-selector').style.display = 'none';
+      document.getElementById('phone-setup-modal').style.display = 'flex';
+    }
+
+    function startMainScreen() {
+      currentRoomCode = document.getElementById('created-room-code').value.toUpperCase();
+      document.getElementById('main-setup-modal').style.display = 'none';
+      document.getElementById('main-screen').style.display = 'block';
+      document.getElementById('display-room-code').textContent = currentRoomCode;
+      isMainScreen = true;
+    }
+
+    function joinGameFromPhone() {
+      myNickname = document.getElementById('player-nickname').value.trim() || 'Plażowicz';
+      currentRoomCode = document.getElementById('join-room-code').value.toUpperCase();
+
+      document.getElementById('phone-setup-modal').style.display = 'none';
+      document.getElementById('phone-screen').style.display = 'flex';
+      document.getElementById('phone-user-title').textContent = `🌴 ${myNickname}`;
+
+      channel.postMessage({
+        type: 'PLAYER_JOINED',
+        room: currentRoomCode,
+        nickname: myNickname
+      });
+    }
+
+    // SIECIOWE PRZESYŁANIE SYGNAŁÓW
+    channel.onmessage = (event) => {
+      const data = event.data;
+      if (data.room !== currentRoomCode) return;
+
+      if (isMainScreen && data.type === 'PLAYER_JOINED') {
+        if (!joinedPlayers.find(p => p.nickname === data.nickname) && joinedPlayers.length < 4) {
+          joinedPlayers.push({ nickname: data.nickname, cardCount: 0 });
+          updateAvatarsUI();
+
+          if (joinedPlayers.length >= 2 && dealerIndex === -1) {
+            startDealerRoulette();
+          }
+        }
+      }
+
+      if (!isMainScreen && data.type === 'YOU_ARE_DEALER') {
+        if (data.targetNickname === myNickname) {
+          document.getElementById('dealer-btn-container').style.display = 'flex';
+          document.getElementById('status-info').textContent = 'Kliknij poniżej, aby rozdać karty!';
+        } else {
+          document.getElementById('dealer-btn-container').style.display = 'none';
+          document.getElementById('status-info').textContent = `Krupier (${data.dealerName}) przygotowuje talię...`;
+        }
+      }
+
+      if (isMainScreen && data.type === 'EXECUTE_DEAL') {
+        runShufflingAndDealingAnimation();
+      }
+
+      if (!isMainScreen && data.type === 'DISTRIBUTE_HAND') {
+        if (data.targetNickname === myNickname) {
+          myPhoneCards = data.cards;
+          renderPhoneHand();
+          document.getElementById('dealer-btn-container').style.display = 'none';
+          document.getElementById('status-info').textContent = 'Karty rozdane! Zagraj kartę na stół.';
+        }
+      }
+
+      if (isMainScreen && data.type === 'PLAY_CARD') {
+        const pIndex = joinedPlayers.findIndex(p => p.nickname === data.nickname);
+        if (pIndex !== -1 && joinedPlayers[pIndex].cardCount > 0) {
+          joinedPlayers[pIndex].cardCount--;
+          updateAvatarsUI();
+          animateCardToDiscard(data.card, pIndex);
+        }
+      }
+    };
+
+    function updateAvatarsUI() {
+      joinedPlayers.forEach((p, idx) => {
+        const slot = document.getElementById(`p-avatar-${idx}`);
+        slot.style.display = 'flex';
+        slot.querySelector('.p-name').textContent = p.nickname;
+        slot.querySelector('.p-cards').textContent = `Karty: ${p.cardCount}`;
+        
+        if (idx === dealerIndex) slot.classList.add('dealer');
+        else slot.classList.remove('dealer');
+      });
+    }
+
+    // RULETKA KRUPIERA
+    function startDealerRoulette() {
+      const banner = document.getElementById('roulette-banner');
+      const text = document.getElementById('roulette-text');
+      banner.style.display = 'block';
+
+      let count = 0;
+      const interval = setInterval(() => {
+        const tempIdx = count % joinedPlayers.length;
+        text.textContent = `Tasuje: ${joinedPlayers[tempIdx].nickname}`;
+        count++;
+
+        if (count > 15) {
+          clearInterval(interval);
+          dealerIndex = Math.floor(Math.random() * joinedPlayers.length);
+          const chosenDealer = joinedPlayers[dealerIndex];
+          text.textContent = `Krupier: ${chosenDealer.nickname}! 🌴`;
+          
+          updateAvatarsUI();
+
+          setTimeout(() => {
+            banner.style.display = 'none';
+            channel.postMessage({
+              type: 'YOU_ARE_DEALER',
+              room: currentRoomCode,
+              targetNickname: chosenDealer.nickname,
+              dealerName: chosenDealer.nickname
+            });
+          }, 1500);
+        }
+      }, 150);
+    }
+
+    function triggerDealerAction() {
+      channel.postMessage({
+        type: 'EXECUTE_DEAL',
+        room: currentRoomCode
+      });
+    }
+
+    // ANIMACJA TASOWANIA I ROZDAWANIA DLA KRUPIERA
+    function runShufflingAndDealingAnimation() {
+      const deckUI = document.getElementById('main-deck');
+      deckUI.classList.add('shuffling-deck');
+
+      setTimeout(() => {
+        deckUI.classList.remove('shuffling-deck');
+        
+        // Zawsze pierwsza karta na stole to zwykła cyfra (0-9)
+        const startColor = COLORS[Math.floor(Math.random() * COLORS.length)];
+        const startValue = Math.floor(Math.random() * 10).toString();
+        topDiscardCard = { color: startColor, value: startValue };
+        renderMainDiscard();
+
+        joinedPlayers.forEach((player, pIdx) => {
+          const cardsForPlayer = [];
+          for (let c = 0; c < 5; c++) {
+            cardsForPlayer.push({
+              color: COLORS[Math.floor(Math.random() * COLORS.length)],
+              value: VALUES[Math.floor(Math.random() * VALUES.length)]
+            });
+          }
+          player.cardCount = 5;
+
+          for (let i = 0; i < 5; i++) {
+            setTimeout(() => animateCardDeal(pIdx), (pIdx * 5 + i) * 100);
+          }
+
+          channel.postMessage({
+            type: 'DISTRIBUTE_HAND',
+            room: currentRoomCode,
+            targetNickname: player.nickname,
+            cards: cardsForPlayer
+          });
+        });
+
+        updateAvatarsUI();
+      }, 1200);
+    }
+
+    function animateCardDeal(playerIndex) {
+      const deckElem = document.getElementById('main-deck');
+      const avatarElem = document.getElementById(`p-avatar-${playerIndex}`);
+
+      const dRect = deckElem.getBoundingClientRect();
+      const aRect = avatarElem.getBoundingClientRect();
+
+      const flyingCard = createCardUI({ color: 'black', value: '' }, true);
+      flyingCard.classList.add('animated-card');
+      
+      flyingCard.style.left = `${dRect.left}px`;
+      flyingCard.style.top = `${dRect.top}px`;
+
+      document.body.appendChild(flyingCard);
+      flyingCard.getBoundingClientRect();
+
+      flyingCard.style.left = `${aRect.left + 15}px`;
+      flyingCard.style.top = `${aRect.top + 15}px`;
+      flyingCard.style.transform = 'scale(0.3)';
+      flyingCard.style.opacity = '0.2';
+
+      setTimeout(() => flyingCard.remove(), 600);
+    }
+
+    function animateCardToDiscard(card, playerIndex) {
+      const avatarElem = document.getElementById(`p-avatar-${playerIndex}`);
+      const discardElem = document.getElementById('main-discard');
+
+      const aRect = avatarElem.getBoundingClientRect();
+      const dRect = discardElem.getBoundingClientRect();
+
+      const flyingCard = createCardUI(card);
+      flyingCard.classList.add('animated-card');
+
+      flyingCard.style.left = `${aRect.left}px`;
+      flyingCard.style.top = `${aRect.top}px`;
+
+      document.body.appendChild(flyingCard);
+      flyingCard.getBoundingClientRect();
+
+      flyingCard.style.left = `${dRect.left}px`;
+      flyingCard.style.top = `${dRect.top}px`;
+      flyingCard.style.transform = `rotate(${Math.floor(Math.random() * 40) - 20}deg)`;
+
+      setTimeout(() => {
+        topDiscardCard = card;
+        renderMainDiscard();
+        flyingCard.remove();
+      }, 600);
+    }
+
+    function renderMainDiscard() {
+      const discardUI = document.getElementById('main-discard');
+      discardUI.innerHTML = '';
+      if (topDiscardCard) {
+        discardUI.appendChild(createCardUI(topDiscardCard));
+      }
+    }
+
+    function renderPhoneHand() {
+      const handUI = document.getElementById('phone-hand');
+      handUI.innerHTML = '';
+
+      myPhoneCards.forEach((card, index) => {
+        const cardUI = createCardUI(card);
+        cardUI.onclick = (e) => playPhoneCard(index, e.currentTarget);
+        handUI.appendChild(cardUI);
+      });
+    }
+
+    function playPhoneCard(index, cardElem) {
+      const card = myPhoneCards[index];
+
+      cardElem.classList.add('card-throw-phone');
+
+      channel.postMessage({
+        type: 'PLAY_CARD',
+        room: currentRoomCode,
+        nickname: myNickname,
+        card: card
+      });
+
+      setTimeout(() => {
+        myPhoneCards.splice(index, 1);
+        renderPhoneHand();
+      }, 450);
+    }
+
+    function createCardUI(card, isBack = false) {
+      const div = document.createElement('div');
+      if (isBack) {
+        div.className = 'card back';
+        return div;
+      }
+      div.className = `card ${card.color}`;
+      div.innerHTML = `
+        <div class="card-val-top">${card.value}</div>
+        <div class="card-center-text">${card.value}</div>
+        <div class="card-val-bot">${card.value}</div>
+      `;
+      return div;
+    }
+  </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>UNO - EDYCJA WAKACYJNA</title>
   
   <!-- Czcionka Google Fonts z pełną obsługą polskich znaków -->
