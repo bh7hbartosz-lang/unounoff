@@ -3,265 +3,331 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>UNO OVERDRIVE ULTRA</title>
+    <title>UNO VACATION EDITION</title>
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --red: #ff0055;
-            --blue: #00f0ff;
-            --green: #00ff66;
-            --yellow: #ffe600;
-            --purple: #7000ff;
-            --dark: #0a0518;
-            --glass: rgba(20, 10, 35, 0.88);
-            --glass-border: rgba(255, 0, 234, 0.35);
+            --sun-yellow: #FFD166;
+            --ocean-blue: #06D6A0;
+            --deep-blue: #118AB2;
+            --coral-red: #EF476F;
+            --sand-gold: #FFE8A3;
+            --palm-green: #073B4C;
+            --card-red: #FF4757;
+            --card-blue: #1E90FF;
+            --card-green: #2ED573;
+            --card-yellow: #FFA502;
+            --card-black: #2F3542;
         }
 
-        * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
-        
-        body { 
-            margin: 0; background: #05020c; color: #fff; overflow: hidden; height: 100vh; height: -webkit-fill-available;
+        * { box-sizing: border-box; font-family: 'Nunito', sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0; background: #073B4C; color: #fff; overflow: hidden; height: 100vh; height: -webkit-fill-available;
         }
 
-        .neon-bg {
+        /* WAKACYJNE TŁO TROPIKALNE */
+        .vacation-bg {
             position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 0; pointer-events: none;
-            background: radial-gradient(circle at 50% 30%, rgba(112, 0, 255, 0.4) 0%, transparent 70%),
-                        radial-gradient(circle at 50% 80%, rgba(255, 0, 85, 0.3) 0%, transparent 50%),
-                        linear-gradient(to bottom, #05020c 0%, #15082b 100%);
-            transition: background 0.5s ease;
+            background: linear-gradient(180deg, #2980b9 0%, #6dd5fa 40%, #f7d794 80%, #f3a683 100%);
+            transition: background 0.8s ease;
         }
 
-        .neon-grid {
-            position: absolute; width: 200%; height: 200%; top: -50%; left: -50%; z-index: 0; pointer-events: none;
-            background-image: linear-gradient(to right, rgba(0, 240, 255, 0.12) 1px, transparent 1px),
-                              linear-gradient(to bottom, rgba(255, 0, 234, 0.12) 1px, transparent 1px);
-            background-size: 60px 60px; transform: perspective(500px) rotateX(60deg); animation: moveGrid 8s linear infinite;
+        body.color-red .vacation-bg { background: linear-gradient(180deg, #d63031 0%, #ff7675 60%, #ffeaa7 100%); }
+        body.color-blue .vacation-bg { background: linear-gradient(180deg, #0984e3 0%, #74b9ff 60%, #ffeaa7 100%); }
+        body.color-green .vacation-bg { background: linear-gradient(180deg, #00b894 0%, #55efc4 60%, #ffeaa7 100%); }
+        body.color-yellow .vacation-bg { background: linear-gradient(180deg, #fdcb6e 0%, #ffeaa7 60%, #fab1a0 100%); }
+
+        /* SŁOŃCE I CHMURY */
+        .sun {
+            position: absolute; top: 30px; right: 50px; width: 120px; height: 120px;
+            background: radial-gradient(circle, #fff700 30%, #ffaa00 100%);
+            border-radius: 50%; box-shadow: 0 0 50px #ffaa00, 0 0 100px #fff700;
+            animation: pulseSun 4s infinite alternate;
         }
-        @keyframes moveGrid { 0% { transform: perspective(500px) rotateX(60deg) translateY(0); } 100% { transform: perspective(500px) rotateX(60deg) translateY(60px); } }
+        @keyframes pulseSun { 0% { transform: scale(1); } 100% { transform: scale(1.08); } }
 
         .screen { display: none; padding: 15px; text-align: center; height: 100vh; flex-direction: column; justify-content: center; align-items: center; position: relative; z-index: 1; }
         .screen.active { display: flex; }
 
-        h1 { 
-            font-size: 3rem; font-weight: 900; background: linear-gradient(45deg, var(--red), #ff00ea, var(--blue));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 4px;
-            filter: drop-shadow(0 0 25px rgba(255, 0, 234, 0.8));
+        h1.title-vacation {
+            font-family: 'Fredoka One', cursive; font-size: 3.5rem; color: #FFF;
+            text-shadow: 4px 4px 0px #EF476F, 8px 8px 0px #118AB2;
+            margin-bottom: 20px; letter-spacing: 2px;
         }
 
         .glass-panel {
-            background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border); border-radius: 24px; padding: 25px;
-            box-shadow: 0 0 40px rgba(112, 0, 255, 0.4); width: 100%; max-width: 440px;
+            background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 3px solid rgba(255, 255, 255, 0.5); border-radius: 28px; padding: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); width: 100%; max-width: 460px; color: #073B4C;
         }
 
-        label { display: block; text-align: left; font-weight: 800; color: var(--blue); margin: 8px 0 4px 5px; font-size: 0.9rem; }
-        input, select { 
-            padding: 14px; font-size: 1rem; border-radius: 12px; border: 1px solid var(--glass-border); 
-            background: rgba(10, 5, 20, 0.8); color: #fff; margin-bottom: 10px; width: 100%; text-align: center; font-weight: bold; outline: none;
+        label { display: block; text-align: left; font-weight: 900; color: #073B4C; margin: 10px 0 4px 5px; font-size: 1rem; }
+        input, select {
+            padding: 14px; font-size: 1.1rem; border-radius: 16px; border: 2px solid #118AB2;
+            background: rgba(255, 255, 255, 0.9); color: #073B4C; margin-bottom: 12px; width: 100%;
+            text-align: center; font-weight: 900; outline: none; font-family: 'Nunito', sans-serif;
         }
-        
-        .btn { 
-            padding: 16px 20px; font-size: 1rem; font-weight: 900; border-radius: 14px; border: none; cursor: pointer; color: #fff; 
-            background: linear-gradient(135deg, var(--purple), #3b0080); box-shadow: 0 0 20px rgba(112, 0, 255, 0.5); width: 100%; margin-bottom: 10px; text-transform: uppercase;
+
+        .btn {
+            padding: 16px 20px; font-size: 1.1rem; font-family: 'Fredoka One', cursive; border-radius: 18px; border: none;
+            cursor: pointer; color: #fff; background: linear-gradient(135deg, #EF476F, #FF6B6B);
+            box-shadow: 0 8px 0px #C0392B; width: 100%; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;
+            transition: all 0.1s ease;
         }
-        .btn:active { transform: scale(0.96); }
-        .btn-green { background: linear-gradient(135deg, var(--green), #009933); color: #000; box-shadow: 0 0 20px rgba(0,255,102,0.4); }
-        .btn-red { background: linear-gradient(135deg, var(--red), #80002b); box-shadow: 0 0 20px rgba(255,0,85,0.4); }
-        .btn-yellow { background: linear-gradient(135deg, var(--yellow), #ff9900); color: #000; box-shadow: 0 0 20px rgba(255,230,0,0.4); }
+        .btn:active { transform: translateY(4px); box-shadow: 0 4px 0px #C0392B; }
+        .btn-green { background: linear-gradient(135deg, #06D6A0, #1DD1A1); box-shadow: 0 8px 0px #10AC84; color: #073B4C; }
+        .btn-green:active { box-shadow: 0 4px 0px #10AC84; }
+        .btn-yellow { background: linear-gradient(135deg, #FFD166, #FF9F43); box-shadow: 0 8px 0px #EE5253; color: #073B4C; }
+        .btn-blue { background: linear-gradient(135deg, #118AB2, #2980B9); box-shadow: 0 8px 0px #0984E3; color: #FFF; }
 
-        .btn-remove { background: linear-gradient(135deg, var(--red), #800022); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-
-        .lobby-player-row { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.5); padding: 10px 14px; border-radius: 12px; margin-bottom: 8px; border: 1px solid var(--glass-border); }
-
-        /* --- DUŻE KARTY PC --- */
-        .card { 
-            width: 140px; height: 210px; border-radius: 20px; border: 4px solid #ffffff; 
-            display: flex; justify-content: center; align-items: center; position: relative; 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.8); cursor: pointer; transition: transform 0.2s; flex-shrink: 0;
+        /* GIGANTYCZNE KARTY PC WAKACJE */
+        .card {
+            width: 180px; height: 270px; border-radius: 24px; border: 6px solid #FFFFFF;
+            display: flex; flex-direction: column; justify-content: space-between; align-items: center;
+            position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.4); cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); flex-shrink: 0; padding: 12px;
+            background-size: cover; background-position: center;
         }
         .card::before {
-            content: ''; position: absolute; width: 84%; height: 78%; background: rgba(0, 0, 0, 0.3); border-radius: 50%; transform: rotate(-28deg); border: 2px dashed rgba(255,255,255,0.4);
+            content: ''; position: absolute; width: 85%; height: 75%; background: rgba(255, 255, 255, 0.25);
+            border-radius: 50%; transform: rotate(-25deg); border: 2px dashed rgba(255,255,255,0.6);
         }
-        .card-inner { position: relative; z-index: 2; font-size: 3.8rem; font-weight: 900; font-style: italic; text-shadow: 3px 4px 0px rgba(0,0,0,0.8); }
+        .card-inner { position: relative; z-index: 2; font-family: 'Fredoka One', cursive; font-size: 5rem; color: #FFF; text-shadow: 4px 4px 0px rgba(0,0,0,0.4); margin: auto; }
+        .card-corner { position: absolute; font-family: 'Fredoka One', cursive; font-size: 1.5rem; color: #FFF; text-shadow: 2px 2px 0px rgba(0,0,0,0.4); z-index: 3; }
+        .card-corner.top-left { top: 10px; left: 14px; }
+        .card-corner.bottom-right { bottom: 10px; right: 14px; transform: rotate(180deg); }
 
-        /* KARTY TELEFON */
-        .mobile-card { width: 95px; height: 145px; border-radius: 14px; border: 3px solid #fff; }
-        .mobile-card .card-inner { font-size: 2.4rem; }
+        .card.red { background-color: var(--card-red); border-color: #FF85A2; }
+        .card.blue { background-color: var(--card-blue); border-color: #70A1FF; }
+        .card.green { background-color: var(--card-green); border-color: #7BED9F; }
+        .card.yellow { background-color: var(--card-yellow); border-color: #FFEAA7; }
+        .card.black { background-color: var(--card-black); border-color: #FFD166; }
 
-        .card.red { background: linear-gradient(135deg, #ff0055, #80002b); border-color: #ff6699; }
-        .card.blue { background: linear-gradient(135deg, #00f0ff, #005b66); border-color: #80f8ff; }
-        .card.green { background: linear-gradient(135deg, #00ff66, #006622); border-color: #80ffb3; }
-        .card.yellow { background: linear-gradient(135deg, #ffe600, #807300); border-color: #fff280; }
-        .card.black { background: linear-gradient(135deg, #18052b, #3c0066); border-color: var(--yellow); }
-        .card.black::before { background: linear-gradient(45deg, var(--red), var(--yellow), var(--green), var(--blue)); opacity: 0.9; }
+        /* MINI KARTY TELEFON */
+        .mobile-card { width: 100px; height: 155px; border-radius: 16px; border: 4px solid #FFF; padding: 6px; }
+        .mobile-card .card-inner { font-size: 2.8rem; }
+        .mobile-card.selected { transform: translateY(-25px) scale(1.08); border-color: #FFD166; box-shadow: 0 0 25px #FFD166; }
 
-        /* MULTI COMBO BANNER TELEFON */
-        .combo-box {
-            background: linear-gradient(135deg, var(--yellow), #ff8800); color: #000; padding: 10px; border-radius: 14px;
-            font-weight: 900; margin-bottom: 10px; display: none; width: 100%; box-shadow: 0 0 20px rgba(255,230,0,0.6);
+        /* WAKACYJNY RENDER EKRAMU PC */
+        #pc-board { display: grid; grid-template-rows: auto 1fr auto; height: 100vh; padding: 20px; gap: 15px; width: 100%; max-width: 1400px; }
+        .top-bar-vacation { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.3); backdrop-filter: blur(10px); padding: 15px 30px; border-radius: 25px; border: 2px solid #FFF; }
+        
+        .table-center { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; position: relative; }
+        .cards-area { display: flex; gap: 60px; align-items: center; position: relative; }
+
+        /* PROFILE GRACZY W NAROŻNIKACH / NA OKRĘGU */
+        .player-avatar-vacation {
+            width: 75px; height: 75px; border-radius: 50%; background: #FFD166; border: 4px solid #FFF;
+            display: flex; justify-content: center; align-items: center; font-size: 2.2rem;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2); position: relative;
+        }
+        .player-box-vacation {
+            display: flex; flex-direction: column; align-items: center; background: rgba(255,255,255,0.35);
+            backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 24px; border: 3px solid #FFF; min-width: 150px;
+            transition: all 0.3s ease; position: relative;
+        }
+        .player-box-vacation.active-turn {
+            background: rgba(6, 214, 160, 0.8); border-color: #FFD166; transform: scale(1.1); box-shadow: 0 0 35px #06D6A0;
+        }
+        .turn-dot {
+            width: 20px; height: 20px; border-radius: 50%; background: #FFD166; border: 3px solid #FFF;
+            position: absolute; top: -5px; right: -5px; display: none; animation: blinkDot 0.8s infinite alternate;
+        }
+        .player-box-vacation.active-turn .turn-dot { display: block; }
+        @keyframes blinkDot { 0% { opacity: 0.3; } 100% { opacity: 1; transform: scale(1.2); } }
+
+        /* EKRAN TASOWANIA I ROZDAWANIA */
+        .dealer-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(7, 59, 76, 0.95);
+            z-index: 500; display: none; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .deck-shuffle-anim {
+            width: 160px; height: 240px; border-radius: 20px; background: #FFD166; border: 5px solid #FFF;
+            animation: shuffleCards 1.2s infinite ease-in-out; display: flex; justify-content: center; align-items: center;
+            font-family: 'Fredoka One', cursive; font-size: 2rem; color: #073B4C;
+        }
+        @keyframes shuffleCards {
+            0% { transform: rotate(0deg) translateX(0); }
+            25% { transform: rotate(-15deg) translateX(-40px); }
+            50% { transform: rotate(15deg) translateX(40px); }
+            100% { transform: rotate(0deg) translateX(0); }
         }
 
-        /* EKRAN BLOKADY TELEFON */
-        .blocked-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10, 0, 20, 0.95);
-            z-index: 999; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 20px;
+        /* EKRAN BLOKADY TELEFON PEŁNY */
+        .blocked-full-screen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle, #EF476F 0%, #073B4C 100%);
+            z-index: 999; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center;
         }
-        .blocked-icon { font-size: 5rem; animation: pulse 1s infinite alternate; }
-        @keyframes pulse { 0% { transform: scale(1); } 100% { transform: scale(1.2); } }
+        .blocked-full-screen .icon { font-size: 7rem; animation: lockPulse 1s infinite alternate; }
+        @keyframes lockPulse { 0% { transform: scale(0.9); } 100% { transform: scale(1.2); } }
 
-        /* ANIMACJE STÓŁ PC */
-        @keyframes dropCardToTable {
-            0% { transform: translateY(-300px) scale(2) rotate(-20deg); opacity: 0; filter: blur(8px); }
-            100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; filter: blur(0); }
+        /* PRZYCISK WYŁÓŻ SELEKCJĘ / COMBO */
+        .multi-select-bar {
+            background: rgba(255, 209, 102, 0.95); border: 3px solid #FFF; border-radius: 20px; padding: 12px;
+            width: 100%; display: none; margin-bottom: 10px; color: #073B4C; font-weight: 900;
         }
-        .animate-drop { animation: dropCardToTable 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 
-        @keyframes flyOutFromHand { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-400px) scale(0.2); opacity: 0; } }
-        .animate-flyout { animation: flyOutFromHand 0.35s ease-in forwards !important; }
+        /* PODGLĄD OBECNEJ KARTY NA TELEFONIE */
+        .mobile-top-card-preview {
+            position: absolute; top: 10px; right: 10px; display: flex; align-items: center; gap: 8px;
+            background: rgba(255,255,255,0.3); padding: 6px 12px; border-radius: 16px; border: 2px solid #FFF;
+        }
+        .mini-preview-card { width: 35px; height: 50px; border-radius: 8px; border: 2px solid #FFF; display: flex; justify-content: center; align-items: center; font-weight: 900; font-size: 1rem; color: #FFF; }
 
-        /* STÓŁ PC STYL */
-        #pc-board { display: grid; grid-template-rows: auto 1fr auto; height: 100vh; padding: 20px; gap: 15px; width: 100%; max-width: 1300px; }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; background: var(--glass); padding: 15px 30px; border-radius: 20px; border: 1px solid var(--glass-border); }
-        .room-code { font-size: 2rem; color: var(--yellow); font-weight: 900; letter-spacing: 3px; }
+        /* KARTY W LOCIE - ANIMACJA */
+        .flying-card {
+            position: fixed; z-index: 900; transition: all 0.7s cubic-bezier(0.25, 1, 0.5, 1); pointer-events: none;
+        }
 
-        .table-center { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; }
-        .cards-area { display: flex; gap: 50px; align-items: center; }
-
-        .deck-back { background: linear-gradient(135deg, #10002b, #240046) !important; border-color: var(--purple) !important; }
-        .deck-back::before { background: var(--red) !important; }
-        .deck-back .card-inner { color: var(--yellow) !important; font-size: 2rem; }
-
-        /* MOBILNY */
-        #mobile-screen { padding: 0; justify-content: space-between; }
-        #mobile-board { display: flex; flex-direction: column; justify-content: space-between; height: 100vh; height: 100dvh; width: 100%; max-width: 450px; padding: 12px; }
-
-        .status-box { background: var(--glass); padding: 12px; border-radius: 16px; text-align: center; font-size: 1.1rem; font-weight: 900; border: 1px solid var(--glass-border); }
-        .hand-container { display: flex; gap: 12px; overflow-x: auto; padding: 20px 10px; align-items: center; flex-grow: 1; margin: 10px 0; }
-
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); justify-content: center; align-items: center; z-index: 100; }
-        .color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 85%; max-width: 300px; }
-        .color-btn { height: 100px; border-radius: 20px; border: 3px solid #fff; font-size: 1.2rem; font-weight: 900; cursor: pointer; text-transform: uppercase; }
-
-        #game-log { font-size: 2rem; color: var(--yellow); text-shadow: 0 0 20px rgba(255,230,0,0.8); min-height: 50px; text-align: center; font-weight: 900; }
-        .players-bar { display: flex; gap: 20px; justify-content: center; align-items: center; }
-        .player-node { background: var(--glass); padding: 15px 30px; border-radius: 20px; border: 2px solid transparent; min-width: 170px; text-align: center; }
-        .player-node.active-turn { border-color: var(--green); transform: translateY(-10px); box-shadow: 0 0 30px rgba(0,255,102,0.5); background: rgba(0,255,102,0.15); }
+        /* MODAL GŁOSOWANIA I REPLAY */
+        .vote-box { background: rgba(255,255,255,0.95); border-radius: 25px; padding: 25px; color: #073B4C; max-width: 400px; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div class="neon-bg" id="main-bg"></div>
-    <div class="neon-grid"></div>
+    <div class="vacation-bg" id="bg-vacation"></div>
+    <div class="sun"></div>
 
-    <!-- 1. START -->
+    <!-- 1. START SCREEN -->
     <div id="start-screen" class="screen active">
-        <h1>🔮 UNO OVERDRIVE</h1>
+        <h1 class="title-vacation">🏝️ UNO VACATION</h1>
         <div class="glass-panel">
             <button class="btn btn-green" onclick="initHost()">STWÓRZ POKÓJ (PC/TV)</button>
-            <div style="margin: 15px 0; color: #aaa; font-size: 0.9rem; font-weight: 800;">— LUB DOŁĄCZ NA TELEFONIE —</div>
+            <div style="margin: 15px 0; color: #073B4C; font-size: 1rem; font-weight: 900;">— LUB DOŁĄCZ NA TELEFONIE —</div>
             <input type="text" id="join-code" placeholder="KOD POKOJU" style="text-transform: uppercase;">
             <input type="text" id="player-name" placeholder="TWOJE IMIĘ">
-            <button class="btn" onclick="initClient()">DOŁĄCZ DO GRY</button>
-            <div id="connection-status" style="font-size:0.85rem; color: var(--yellow); margin-top: 8px; font-weight: bold;"></div>
+            <button class="btn btn-yellow" onclick="initClient()">DOŁĄCZ DO GRY</button>
+            <div id="connection-status" style="font-size:0.9rem; color: #073B4C; margin-top: 8px; font-weight: 900;"></div>
         </div>
     </div>
 
-    <!-- 2. LOBBY HOST -->
+    <!-- 2. LOBBY HOST (PC) -->
     <div id="host-lobby-screen" class="screen">
-        <h1>⚙️ LOBBY GRY</h1>
+        <h1 class="title-vacation">🏖️ WAKACYJNE LOBBY</h1>
         <div class="glass-panel">
-            <div style="font-size: 1.3rem; font-weight: 900; margin-bottom: 10px;">KOD POKOJU: <span id="lobby-room-code" style="color:var(--yellow)">----</span></div>
+            <div style="font-size: 1.4rem; font-weight: 900; margin-bottom: 10px; color: #073B4C;">KOD POKOJU: <span id="lobby-room-code" style="color:#EF476F; font-size: 1.8rem;">----</span></div>
 
-            <label>LICZBA KART NA START:</label>
-            <select id="cards-count-select">
-                <option value="3">⚡ 3 Karty</option>
-                <option value="5">🎮 5 Kart</option>
-                <option value="7" selected>🎴 7 Kart</option>
+            <label>TRYB POZIOMU TRUDNOŚCI:</label>
+            <select id="difficulty-select">
+                <option value="normal">🌴 Normalny (Klasyczne UNO)</option>
+                <option value="medium">☀️ Średni (Szybsze tempo)</option>
+                <option value="hard">🔥 Trudny (Szybki czas na ruch)</option>
+                <option value="hardcore">☠️ Hardcore (Brak podglądu kart stół)</option>
             </select>
+
+            <label>WPISZ LICZBĘ KART NA START:</label>
+            <input type="number" id="custom-cards-count" value="7" min="1" max="20">
 
             <label>PODŁĄCZENI GRACZE:</label>
             <div id="lobby-players-list" style="margin: 15px 0; max-height: 160px; overflow-y: auto;"></div>
 
-            <button class="btn btn-green" id="start-game-btn" onclick="startGame()" style="display:none;">ROZPOCZNIJ GRĘ</button>
+            <button class="btn btn-green" id="start-game-btn" onclick="startDealySequence()" style="display:none;">ROZPOCZNIJ ROZDANIE KART 🎴</button>
         </div>
     </div>
 
-    <!-- 3. STÓŁ PC -->
+    <!-- EKRAN ROZDAWANIA KART NA PC -->
+    <div id="dealer-modal" class="dealer-overlay">
+        <h1 class="title-vacation" id="dealer-title">LOSOWANIE ROZDAJĄCEGO...</h1>
+        <div class="deck-shuffle-anim" id="shuffle-box">UNO</div>
+        <h2 style="color: #FFD166; font-size: 2rem; font-family: 'Fredoka One', cursive; margin-top: 20px;" id="dealer-name-display">...</h2>
+        <button class="btn btn-yellow" id="confirm-deal-btn" style="display:none; max-width: 300px; margin-top: 20px;" onclick="finishDealingAndStart()">ROZDAJ KARTY! 🎴</button>
+    </div>
+
+    <!-- 3. MAIN EKRAN PC -->
     <div id="pc-screen" class="screen">
         <div id="pc-board">
-            <div class="top-bar">
-                <div>KOD: <span id="display-room-code" class="room-code">----</span></div>
-                <div id="deck-left-count" style="font-weight: 900; color: var(--blue); font-size: 1.3rem;">KART W TALII: 0</div>
+            <div class="top-bar-vacation">
+                <div style="font-size: 1.5rem; font-weight: 900; color: #073B4C;">KOD: <span id="display-room-code" style="color:#EF476F;">----</span></div>
+                <div id="game-log" style="font-size: 1.8rem; font-family: 'Fredoka One', cursive; color: #073B4C;">Plażowe UNO!</div>
+                <div id="deck-left-count" style="font-weight: 900; color: #073B4C; font-size: 1.3rem;">TALIA: 0</div>
             </div>
 
             <div class="table-center">
-                <div id="game-log">Czekam na ruchy...</div>
                 <div class="cards-area">
-                    <div class="card deck-back"><div class="card-inner">UNO</div></div>
+                    <div class="card black" style="background-color: #073B4C;"><div class="card-inner">🏖️</div></div>
                     <div id="top-card" class="card red"><div class="card-inner">?</div></div>
                 </div>
-                <div id="current-color-indicator" style="font-size: 1.6rem; font-weight: 900;"></div>
+                <div id="current-color-indicator" style="font-size: 1.8rem; font-family: 'Fredoka One', cursive; color: #073B4C; text-shadow: 2px 2px 0 #FFF;"></div>
             </div>
 
-            <div id="players-list" class="players-bar"></div>
+            <div id="players-circle" style="display: flex; justify-content: space-around; align-items: center; width: 100%;"></div>
         </div>
     </div>
 
-    <!-- 4. KONTROLER ANDROID / PHONE -->
+    <!-- 4. EKRAN TELEFONU GRACZA -->
     <div id="mobile-screen" class="screen">
-        <div id="mobile-board">
-            <div class="status-box" id="turn-status">Łączenie...</div>
-            
-            <div id="combo-box" class="combo-box">
-                <span id="combo-text">Możesz wyłożyć combo!</span>
-                <button class="btn btn-green" style="margin-top:8px; margin-bottom:0;" onclick="playCombo()">WYŁÓŻ WSZYSTKIE!</button>
-            </div>
+        <div class="mobile-top-card-preview">
+            <span style="font-size: 0.8rem; font-weight: 900; color: #073B4C;">NA STOLE:</span>
+            <div id="mobile-preview-card" class="mini-preview-card red">?</div>
+        </div>
 
-            <div id="my-hand" class="hand-container"></div>
+        <div id="turn-status" style="font-size: 1.4rem; font-family: 'Fredoka One', cursive; color: #073B4C; margin-top: 30px;">Czekam na grę...</div>
 
-            <div class="mobile-controls">
-                <button class="btn btn-green" id="play-drawn-btn" onclick="playDrawnCard()" style="display:none;">ZAGRAJ DOBRANĄ KARTĘ!</button>
-                <button class="btn btn-red" id="callout-uno-btn" onclick="calloutNoUno()" style="display:none;">🚨 ZGŁOŚ BRAK UNO! 🚨</button>
-                <button class="btn btn-yellow" id="uno-btn" onclick="sayUno()" style="display:none;">🔥 KRZYCZ UNO! 🔥</button>
-                <button class="btn btn-red" id="draw-btn" onclick="drawCard()" disabled>DOBIERZ KARTĘ</button>
-            </div>
+        <!-- SELEKCJA DWOCH TYCH SAMYCH KART / MULTI SELEKCJA -->
+        <div id="multi-select-bar" class="multi-select-bar">
+            <div id="multi-select-text">Zaznaczono karty do wyłożenia: 0</div>
+            <button class="btn btn-green" style="margin-top: 8px; margin-bottom: 0;" onclick="playSelectedCards()">WYŁÓŻ ZAZNACZONE! 🎴</button>
+        </div>
+
+        <div id="my-hand" style="display: flex; gap: 10px; overflow-x: auto; width: 100%; padding: 25px 10px; align-items: center; flex-grow: 1;"></div>
+
+        <div style="width: 100%;">
+            <button class="btn btn-yellow" id="uno-btn" onclick="sayUno()" style="display:none;">🔥 KRZYCZ UNO! 🔥</button>
+            <button class="btn btn-blue" id="draw-btn" onclick="drawCard()" disabled>DOBIERZ KARTĘ 🎴</button>
         </div>
     </div>
 
-    <!-- EKRAN BLOKADY MOBILNY -->
-    <div id="blocked-overlay" class="blocked-overlay">
-        <div class="blocked-icon">🚫</div>
-        <h2 id="blocked-title" style="color:var(--red); font-size: 1.8rem; margin-top: 15px;">ZABLOKOWANY!</h2>
-        <p id="blocked-desc" style="font-size: 1.2rem; text-align: center; color: #fff;"></p>
+    <!-- PEŁNY EKRAN BLOKADY TELEFON -->
+    <div id="blocked-full-screen" class="blocked-full-screen">
+        <div class="icon">🚫</div>
+        <h1 style="font-family: 'Fredoka One', cursive; font-size: 2.8rem; color: #FFD166; margin: 10px 0;">ZABLOKOWANY!</h1>
+        <p id="blocked-text-reason" style="font-size: 1.4rem; font-weight: 900; color: #FFF;"></p>
     </div>
 
-    <!-- 5. COLOR PICKER -->
-    <div id="color-picker" class="modal">
-        <div class="color-grid">
-            <button class="color-btn" style="background: var(--red); color:#fff;" onclick="chooseColor('red')">Czerwony</button>
-            <button class="color-btn" style="background: var(--blue); color:#fff;" onclick="chooseColor('blue')">Niebieski</button>
-            <button class="color-btn" style="background: var(--green); color:#000;" onclick="chooseColor('green')">Zielony</button>
-            <button class="color-btn" style="background: var(--yellow); color:#000;" onclick="chooseColor('yellow')">Żółty</button>
+    <!-- VOTE AGAIN MODAL -->
+    <div id="vote-modal" class="dealer-overlay">
+        <div class="vote-box">
+            <h1 style="font-family: 'Fredoka One', cursive; color: #EF476F;">KONIEC GRY! 🏆</h1>
+            <h3 id="winner-name-display" style="color: #073B4C;">Zwycięzca: -</h3>
+            <p style="font-weight: 900; margin: 15px 0;">Czy chcesz zagrać ponownie?</p>
+            <div id="mobile-vote-controls">
+                <button class="btn btn-green" onclick="submitVote(true)">TAK, ZAGRAJ PONOWNIE! 🔄</button>
+                <button class="btn" onclick="submitVote(false)">NIE, WYJDŹ 🚪</button>
+            </div>
+            <div id="vote-status-display" style="font-weight: 900; color: #118AB2; margin-top: 10px;">Głosy: 0/0</div>
+        </div>
+    </div>
+
+    <!-- COLOR PICKER -->
+    <div id="color-picker" class="dealer-overlay">
+        <div style="background: #FFF; padding: 25px; border-radius: 25px; width: 85%; max-width: 320px;">
+            <h2 style="color: #073B4C; font-family: 'Fredoka One', cursive; margin-bottom: 15px;">WYBIERZ KOLOR:</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="btn" style="background: var(--card-red);" onclick="chooseColor('red')">Czerwony</button>
+                <button class="btn" style="background: var(--card-blue);" onclick="chooseColor('blue')">Niebieski</button>
+                <button class="btn" style="background: var(--card-green); color:#073B4C;" onclick="chooseColor('green')">Zielony</button>
+                <button class="btn" style="background: var(--card-yellow); color:#073B4C;" onclick="chooseColor('yellow')">Żółty</button>
+            </div>
         </div>
     </div>
 
 <script>
     let peer = null, conn = null, connections = [], isHost = false;
-    let pendingCardIndexes = [];
-    let detectedComboIndexes = [];
-    let lastDrawnIndex = null;
+    let selectedIndices = [];
+    let votes = {};
 
     const PEER_CONFIG = {
         debug: 1,
         config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] }
     };
 
-    let gameState = { 
-        players: [], deck: [], topCard: null, currentColor: null, 
-        currentTurn: 0, direction: 1, started: false, attackStack: 0
+    let gameState = {
+        players: [], deck: [], topCard: null, currentColor: null,
+        currentTurn: 0, direction: 1, started: false, attackStack: 0,
+        dealerIndex: 0, difficulty: 'normal', startCardCount: 7
     };
-
-    function setStatus(msg) { document.getElementById('connection-status').innerText = msg; }
 
     function speakText(text) {
         if ('speechSynthesis' in window) {
@@ -269,12 +335,9 @@
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'pl-PL';
             utterance.rate = 1.0;
-            utterance.pitch = 1.0;
-
             const voices = window.speechSynthesis.getVoices();
             const plVoice = voices.find(v => v.lang.includes('pl') || v.lang.includes('PL'));
             if(plVoice) utterance.voice = plVoice;
-
             window.speechSynthesis.speak(utterance);
         }
     }
@@ -300,10 +363,9 @@
     }
 
     function initHost() {
-        setStatus("Tworzenie...");
         isHost = true;
         const code = Math.random().toString(36).substring(2, 6).toUpperCase();
-        peer = new Peer('UNO-OVERDRIVE-' + code, PEER_CONFIG);
+        peer = new Peer('UNO-VACATION-' + code, PEER_CONFIG);
 
         peer.on('open', () => {
             switchScreen('host-lobby-screen');
@@ -314,66 +376,97 @@
         peer.on('connection', (c) => {
             connections.push(c);
             c.on('data', (data) => handleHostMessage(c, data));
-            c.on('close', () => { removePlayerByPeerId(c.peer, false); });
+            c.on('close', () => removePlayerByPeerId(c.peer));
         });
     }
 
     function initClient() {
         const rawCode = document.getElementById('join-code').value.trim().toUpperCase();
         const name = document.getElementById('player-name').value.trim();
-
         if(!rawCode || !name) return alert('Wpisz kod i imię!');
 
-        setStatus("Łączenie...");
         peer = new Peer(PEER_CONFIG);
-
         peer.on('open', () => {
-            conn = peer.connect('UNO-OVERDRIVE-' + rawCode, { reliable: true });
-
+            conn = peer.connect('UNO-VACATION-' + rawCode, { reliable: true });
             conn.on('open', () => {
                 switchScreen('mobile-screen');
                 conn.send({ type: 'JOIN', name: name });
             });
-
             conn.on('data', (data) => handleClientMessage(data));
-            conn.on('close', () => {
-                alert('Zostałeś rozłączony!');
-                location.reload();
-            });
         });
     }
 
-    function kickPlayer(peerId) {
-        const targetConn = connections.find(c => c.peer === peerId);
-        if (targetConn) targetConn.close();
-        removePlayerByPeerId(peerId, true);
-    }
-
-    function removePlayerByPeerId(peerId, manualKick = false) {
-        const pIndex = gameState.players.findIndex(p => p.id === peerId);
-        if (pIndex !== -1) {
-            const removedPlayer = gameState.players[pIndex];
-            gameState.players.splice(pIndex, 1);
-            connections = connections.filter(c => c.peer !== peerId);
-            if(manualKick) speakText(`Gracz ${removedPlayer.name} został usunięty z pokoju.`);
-            updateLobbyUI();
-            if (gameState.started) broadcastState();
-        }
+    function removePlayerByPeerId(peerId) {
+        gameState.players = gameState.players.filter(p => p.id !== peerId);
+        connections = connections.filter(c => c.peer !== peerId);
+        updateLobbyUI();
+        if (gameState.started) broadcastState();
     }
 
     function updateLobbyUI() {
         const list = document.getElementById('lobby-players-list');
-        if (gameState.players.length === 0) {
-            list.innerHTML = `<div style="color:#aaa; text-align:center;">Oczekiwanie na graczy...</div>`;
-        } else {
-            list.innerHTML = gameState.players.map((p) => `
-                <div class="lobby-player-row">
-                    <span style="font-weight:bold; color:var(--green);">${p.name} ✅</span>
-                    <button class="btn-remove" onclick="kickPlayer('${p.id}')">USUŃ ❌</button>
-                </div>
-            `).join('');
-        }
+        list.innerHTML = gameState.players.map(p => `
+            <div style="background:rgba(255,255,255,0.6); padding:8px; border-radius:12px; margin-bottom:5px; font-weight:900; color:#073B4C;">
+                🏝️ ${p.name} ✅
+            </div>
+        `).join('');
         document.getElementById('start-game-btn').style.display = gameState.players.length >= 2 ? 'block' : 'none';
+    }
+
+    function startDealySequence() {
+        gameState.difficulty = document.getElementById('difficulty-select').value;
+        gameState.startCardCount = parseInt(document.getElementById('custom-cards-count').value) || 7;
+        
+        document.getElementById('dealer-modal').style.display = 'flex';
+        speakText("Losujemy osobę, która przetasuje i rozda karty!");
+
+        let count = 0;
+        let interval = setInterval(() => {
+            let randomP = gameState.players[Math.floor(Math.random() * gameState.players.length)];
+            document.getElementById('dealer-name-display').innerText = randomP.name;
+            count++;
+            if (count > 15) {
+                clearInterval(interval);
+                gameState.dealerIndex = gameState.players.findIndex(p => p.name === randomP.name);
+                document.getElementById('dealer-title').innerText = "GRACZ TASUJĄCY KARTY:";
+                speakText(`${randomP.name} tasuje karty! Naciśnij rozdaj!`);
+                document.getElementById('confirm-deal-btn').style.display = 'block';
+            }
+        }, 150);
+    }
+
+    function finishDealingAndStart() {
+        document.getElementById('dealer-modal').style.display = 'none';
+        startGame();
+    }
+
+    function startGame() {
+        gameState.deck = createFullDeck();
+        gameState.started = true;
+        gameState.attackStack = 0;
+
+        gameState.players.forEach(p => {
+            p.hand = [];
+            drawMultiple(p, gameState.startCardCount);
+            p.declaredUno = false;
+            p.blockedRounds = 0;
+        });
+
+        do { gameState.topCard = gameState.deck.pop(); } while (gameState.topCard.color === 'black');
+
+        gameState.currentColor = gameState.topCard.color;
+        gameState.currentTurn = (gameState.dealerIndex + 1) % gameState.players.length;
+
+        switchScreen('pc-screen');
+        speakText(`Karty zostały rozdane! Rozpoczyna gracz ${gameState.players[gameState.currentTurn].name}`);
+        broadcastState(true);
+    }
+
+    function drawMultiple(player, count) {
+        for (let i = 0; i < count; i++) {
+            if (gameState.deck.length === 0) gameState.deck = createFullDeck();
+            player.hand.push(gameState.deck.pop());
+        }
     }
 
     function handleHostMessage(connection, data) {
@@ -385,11 +478,9 @@
             broadcastState();
         }
 
-        if (data.type === 'PLAY_CARDS') {
+        if (data.type === 'PLAY_SELECTED') {
             if (gameState.players[gameState.currentTurn]?.id === connection.peer) {
-                const playedCards = data.indexes.map(i => player.hand[i]);
-                const firstCard = playedCards[0];
-
+                let playedCards = data.indexes.map(i => player.hand[i]);
                 data.indexes.sort((a,b) => b - a).forEach(i => player.hand.splice(i, 1));
 
                 gameState.topCard = playedCards[playedCards.length - 1];
@@ -403,50 +494,33 @@
                     if (c.value === '+4') gameState.attackStack += 4;
                 });
 
-                if (reverseCount % 2 !== 0) {
-                    gameState.direction *= -1;
-                }
+                if (reverseCount % 2 !== 0) gameState.direction *= -1;
 
                 if (player.hand.length === 0) {
-                    showLog(`🏆 ${player.name} WYGRYWA!`);
-                    speakText(`Gracz ${player.name} wygrywa całą grę! Brawo!`);
-                    gameState.started = false;
+                    speakText(`Zwycięzcą gry zostaje ${player.name}!`);
+                    triggerGameOver(player.name);
                 } else {
                     if (blocksCount > 0) {
-                        let targetPlayerIndex = (gameState.currentTurn + gameState.direction + gameState.players.length) % gameState.players.length;
-                        let targetPlayer = gameState.players[targetPlayerIndex];
-                        targetPlayer.blockedRounds += blocksCount;
-                        
-                        let msg = `${player.name} zablokował gracza ${targetPlayer.name} na ${blocksCount} ${blocksCount === 1 ? 'rundę' : 'rundy'}!`;
-                        showLog(msg);
-                        speakText(msg);
+                        let nextIdx = (gameState.currentTurn + gameState.direction + gameState.players.length) % gameState.players.length;
+                        let target = gameState.players[nextIdx];
+                        target.blockedRounds += blocksCount;
+                        speakText(`${player.name} zablokował gracza ${target.name} na ${blocksCount} rundy!`);
                     } else if (reverseCount > 0) {
                         let nextP = gameState.players[(gameState.currentTurn + gameState.direction + gameState.players.length) % gameState.players.length];
-                        let msg = `Kolejka została zmieniona i teraz zaczyna gracz ${nextP.name}!`;
-                        showLog(msg);
-                        speakText(msg);
-                    } else {
-                        let msg = `${player.name} rzuca kartę!`;
-                        showLog(msg);
+                        speakText(`Kolejka została zmieniona i teraz zaczyna gracz ${nextP.name}`);
                     }
-
                     nextTurn();
                 }
-
                 broadcastState(true);
             }
         }
 
         if (data.type === 'DRAW_CARD') {
             if (gameState.players[gameState.currentTurn]?.id === connection.peer) {
-                let drawCount = gameState.attackStack > 0 ? gameState.attackStack : 1;
-                drawMultiple(player, drawCount);
+                let count = gameState.attackStack > 0 ? gameState.attackStack : 1;
+                drawMultiple(player, count);
                 gameState.attackStack = 0;
-                
-                let msg = `${player.name} dobiera karty.`;
-                showLog(msg);
-                speakText(msg);
-
+                speakText(`${player.name} dobiera karty.`);
                 nextTurn();
                 broadcastState();
             }
@@ -454,59 +528,44 @@
 
         if (data.type === 'DECLARE_UNO') {
             player.declaredUno = true;
-            let msg = `${player.name} głośno krzyczy UNO!`;
-            showLog(msg);
-            speakText(msg);
+            speakText(`${player.name} głośno krzyczy UNO!`);
             broadcastState();
         }
 
-        if (data.type === 'CALLOUT_NO_UNO') {
-            let caught = gameState.players.find(p => p.hand.length === 1 && !p.declaredUno);
-            if (caught) {
-                drawMultiple(caught, 2);
-                let msg = `${caught.name} nie powiedział UNO i dobiera dwie karty!`;
-                showLog(msg);
-                speakText(msg);
-                broadcastState();
+        if (data.type === 'SUBMIT_VOTE') {
+            votes[connection.peer] = data.vote;
+            checkVotes();
+        }
+    }
+
+    function triggerGameOver(winnerName) {
+        votes = {};
+        connections.forEach(c => c.send({ type: 'GAME_OVER', winner: winnerName }));
+        document.getElementById('winner-name-display').innerText = `Zwycięzca: ${winnerName}`;
+        document.getElementById('vote-modal').style.display = 'flex';
+    }
+
+    function checkVotes() {
+        let total = gameState.players.length;
+        let votedCount = Object.keys(votes).length;
+        document.getElementById('vote-status-display').innerText = `Głosy: ${votedCount}/${total}`;
+
+        if (votedCount === total) {
+            let yesVotes = Object.values(votes).filter(v => v === true).length;
+            if (yesVotes >= Math.ceil(total / 2)) {
+                document.getElementById('vote-modal').style.display = 'none';
+                startGame();
+            } else {
+                speakText("Brak większości na rewanż. Rozłączam pokój.");
+                location.reload();
             }
         }
     }
 
-    function drawMultiple(player, count) {
-        for (let i = 0; i < count; i++) {
-            if (gameState.deck.length === 0) gameState.deck = createFullDeck();
-            player.hand.push(gameState.deck.pop());
-        }
-    }
-
-    function startGame() {
-        gameState.deck = createFullDeck();
-        gameState.started = true;
-        gameState.attackStack = 0;
-        let count = parseInt(document.getElementById('cards-count-select').value);
-
-        gameState.players.forEach(p => {
-            p.hand = [];
-            drawMultiple(p, count);
-            p.declaredUno = false;
-            p.blockedRounds = 0;
-        });
-
-        do { gameState.topCard = gameState.deck.pop(); } while (gameState.topCard.color === 'black');
-
-        gameState.currentColor = gameState.topCard.color;
-        gameState.currentTurn = 0;
-
-        switchScreen('pc-screen');
-        showLog("START GRY!");
-        speakText("Zaczynamy grę!");
-        broadcastState(true);
-    }
-
     function nextTurn() {
         gameState.currentTurn = (gameState.currentTurn + gameState.direction + gameState.players.length) % gameState.players.length;
-        
         let currPlayer = gameState.players[gameState.currentTurn];
+
         if (currPlayer && currPlayer.blockedRounds > 0) {
             currPlayer.blockedRounds--;
             if (currPlayer.blockedRounds > 0) {
@@ -518,9 +577,9 @@
         }
     }
 
-    function broadcastState(triggerAnimation = false) {
-        renderPCBoard(triggerAnimation);
-        let someoneForgotUno = gameState.players.some(p => p.hand.length === 1 && !p.declaredUno);
+    function broadcastState(triggerAnim = false) {
+        renderPCBoard(triggerAnim);
+        document.body.className = 'color-' + gameState.currentColor;
 
         connections.forEach(c => {
             const player = gameState.players.find(p => p.id === c.peer);
@@ -528,41 +587,38 @@
                 type: 'SYNC',
                 hand: player ? player.hand : [],
                 topCard: gameState.topCard,
-                currentColor: gameState.currentColor || gameState.topCard?.color,
+                currentColor: gameState.currentColor,
                 isMyTurn: gameState.players[gameState.currentTurn]?.id === c.peer,
                 currentTurnName: gameState.players[gameState.currentTurn]?.name,
                 attackStack: gameState.attackStack,
-                blockedRounds: player ? player.blockedRounds : 0,
-                someoneForgotUno: someoneForgotUno && (player ? player.hand.length !== 1 : true)
+                blockedRounds: player ? player.blockedRounds : 0
             });
         });
     }
 
-    function renderPCBoard(triggerAnimation = false) {
-        document.getElementById('deck-left-count').innerText = `KART W TALII: ${gameState.deck.length}`;
+    function renderPCBoard(triggerAnim = false) {
+        document.getElementById('deck-left-count').innerText = `TALIA: ${gameState.deck.length}`;
 
-        const list = document.getElementById('players-list');
-        list.innerHTML = gameState.players.map((p, idx) => `
-            <div class="player-node ${idx === gameState.currentTurn ? 'active-turn' : ''}">
-                <div style="font-size: 1.3rem; font-weight:900;">${p.name} ${p.declaredUno ? '🔥' : ''}</div>
-                <div style="color:var(--yellow); font-size:1.1rem; font-weight:bold;">🎴 ${p.hand.length} kart</div>
-                ${p.blockedRounds > 0 ? `<div style="color:var(--red); font-weight:bold;">🚫 BLOKADA (${p.blockedRounds})</div>` : ''}
+        const circle = document.getElementById('players-circle');
+        circle.innerHTML = gameState.players.map((p, idx) => `
+            <div class="player-box-vacation ${idx === gameState.currentTurn ? 'active-turn' : ''}">
+                <div class="turn-dot"></div>
+                <div class="player-avatar-vacation">🏝️</div>
+                <div style="font-weight:900; font-size:1.2rem; margin-top:5px; color:#073B4C;">${p.name} ${p.declaredUno ? '🔥' : ''}</div>
+                <div style="font-weight:900; color:#EF476F;">🎴 ${p.hand.length} kart</div>
+                ${p.blockedRounds > 0 ? `<div style="color:#D63031; font-weight:900;">🚫 BLOKADA (${p.blockedRounds})</div>` : ''}
             </div>
         `).join('');
 
         if (gameState.topCard) {
             const topCardEl = document.getElementById('top-card');
             topCardEl.className = `card ${gameState.topCard.color}`;
-            topCardEl.innerHTML = `<div class="card-inner">${gameState.topCard.value}</div>`;
-
-            if(triggerAnimation) {
-                topCardEl.classList.remove('animate-drop');
-                void topCardEl.offsetWidth;
-                topCardEl.classList.add('animate-drop');
-            }
-
-            document.getElementById('current-color-indicator').innerText = `WYBRANY KOLOR: ${gameState.currentColor.toUpperCase()}`;
-            document.getElementById('current-color-indicator').style.color = `var(--${gameState.currentColor})`;
+            topCardEl.innerHTML = `
+                <div class="card-corner top-left">${gameState.topCard.value}</div>
+                <div class="card-inner">${gameState.topCard.value}</div>
+                <div class="card-corner bottom-right">${gameState.topCard.value}</div>
+            `;
+            document.getElementById('current-color-indicator').innerText = `KOLOR: ${gameState.currentColor.toUpperCase()}`;
         }
     }
 
@@ -570,42 +626,32 @@
         if (data.type === 'SYNC') {
             const handEl = document.getElementById('my-hand');
             handEl.innerHTML = '';
+            selectedIndices = [];
+            updateMultiSelectUI();
 
-            // Wykrywanie wielokrotnych kart (Combo)
-            let valueCounts = {};
-            data.hand.forEach((c, idx) => {
-                if (c.color !== 'black') {
-                    if (!valueCounts[c.value]) valueCounts[c.value] = [];
-                    valueCounts[c.value].push(idx);
-                }
-            });
+            // PODGLĄD OBECNEJ KARTY STOŁU
+            const prevCard = document.getElementById('mobile-preview-card');
+            prevCard.className = `mini-preview-card ${data.currentColor}`;
+            prevCard.innerText = data.topCard ? data.topCard.value : '?';
 
-            let foundComboValue = Object.keys(valueCounts).find(val => valueCounts[val].length > 1);
-            const comboBox = document.getElementById('combo-box');
-
-            if (foundComboValue && data.isMyTurn) {
-                detectedComboIndexes = valueCounts[foundComboValue];
-                document.getElementById('combo-text').innerText = `Czy chcesz wyłożyć ${detectedComboIndexes.length}x karta z numerem ${foundComboValue}?`;
-                comboBox.style.display = 'block';
-            } else {
-                comboBox.style.display = 'none';
-            }
-
-            // Ekran blokady na telefonie
-            const blockedOverlay = document.getElementById('blocked-overlay');
+            // EKRAN BLOKADY
+            const blockedScreen = document.getElementById('blocked-full-screen');
             if (data.blockedRounds > 0) {
-                blockedOverlay.style.display = 'flex';
-                document.getElementById('blocked-desc').innerText = `Zostałeś zablokowany! Odczekaj ${data.blockedRounds} ${data.blockedRounds === 1 ? 'rundę' : 'rundy'}.`;
+                blockedScreen.style.display = 'flex';
+                document.getElementById('blocked-text-reason').innerText = `Otrzymałeś blokadę! Czekasz jeszcze ${data.blockedRounds} rundy.`;
             } else {
-                blockedOverlay.style.display = 'none';
+                blockedScreen.style.display = 'none';
             }
 
-            // Renderowanie dłoni
+            // RENDERING HAND
             data.hand.forEach((card, idx) => {
                 const cardEl = document.createElement('div');
                 cardEl.className = `card mobile-card ${card.color}`;
-                cardEl.innerHTML = `<div class="card-inner">${card.value}</div>`;
-                cardEl.onclick = () => validateAndPlay(idx, card, data.topCard, data.currentColor, data.attackStack, data.isMyTurn);
+                cardEl.innerHTML = `
+                    <div class="card-corner top-left" style="font-size:0.9rem;">${card.value}</div>
+                    <div class="card-inner">${card.value}</div>
+                `;
+                cardEl.onclick = () => toggleCardSelection(idx, card, data.topCard, data.currentColor, data.isMyTurn, cardEl);
                 handEl.appendChild(cardEl);
             });
 
@@ -613,62 +659,77 @@
             const drawBtn = document.getElementById('draw-btn');
 
             if (data.isMyTurn) {
-                statusEl.innerText = data.attackStack > 0 ? `ODBIJ LUB DOBIERZ +${data.attackStack}!` : "TWOJA TURA!";
-                statusEl.style.color = "var(--green)";
+                statusEl.innerText = data.attackStack > 0 ? `ODBIJ LUB DOBIERZ +${data.attackStack}!` : "TWOJA TURA! ZAGRAJ KARTĘ";
+                statusEl.style.color = "#06D6A0";
                 drawBtn.disabled = false;
             } else {
-                statusEl.innerText = `Ruch wykonuje: ${data.currentTurnName}`;
-                statusEl.style.color = "#fff";
+                statusEl.innerText = `Ruch gracza: ${data.currentTurnName}`;
+                statusEl.style.color = "#073B4C";
                 drawBtn.disabled = true;
             }
 
-            // WARUNEK: UNO TYLKO GDY MASZ DOKŁADNIE 1 KARTĘ
             document.getElementById('uno-btn').style.display = data.hand.length === 1 ? 'block' : 'none';
-            document.getElementById('callout-uno-btn').style.display = data.someoneForgotUno ? 'block' : 'none';
+        }
+
+        if (data.type === 'GAME_OVER') {
+            document.getElementById('vote-modal').style.display = 'flex';
+            document.getElementById('winner-name-display').innerText = `Zwycięzca: ${data.winner}`;
         }
     }
 
-    function validateAndPlay(index, card, topCard, activeColor, attackStack, isMyTurn) {
+    function toggleCardSelection(idx, card, topCard, activeColor, isMyTurn, element) {
         if (!isMyTurn) return;
 
-        let isValid = false;
-        if (attackStack > 0) {
-            if (card.value === '+2' || card.value === '+4') isValid = true;
+        let pos = selectedIndices.indexOf(idx);
+        if (pos > -1) {
+            selectedIndices.splice(pos, 1);
+            element.classList.remove('selected');
         } else {
-            if (card.color === 'black' || card.color === activeColor || card.value === topCard.value) isValid = true;
+            selectedIndices.push(idx);
+            element.classList.add('selected');
         }
+        updateMultiSelectUI();
+    }
 
-        if (!isValid) return;
-
-        pendingCardIndexes = [index];
-        if (card.color === 'black') {
-            document.getElementById('color-picker').style.display = 'flex';
+    function updateMultiSelectUI() {
+        const bar = document.getElementById('multi-select-bar');
+        if (selectedIndices.length > 0) {
+            bar.style.display = 'block';
+            document.getElementById('multi-select-text').innerText = `Zaznaczono kart do wyłożenia: ${selectedIndices.length}`;
         } else {
-            conn.send({ type: 'PLAY_CARDS', indexes: [index] });
+            bar.style.display = 'none';
         }
     }
 
-    function playCombo() {
-        if (detectedComboIndexes.length > 0) {
-            conn.send({ type: 'PLAY_CARDS', indexes: detectedComboIndexes });
-            document.getElementById('combo-box').style.display = 'none';
-        }
+    function playSelectedCards() {
+        if (selectedIndices.length === 0) return;
+        
+        // Zapis do sprawdzenia koloru
+        let needsColor = false;
+        // Wyrzucenie kart
+        conn.send({ type: 'PLAY_SELECTED', indexes: selectedIndices });
+        selectedIndices = [];
+        updateMultiSelectUI();
     }
 
     function chooseColor(color) {
         document.getElementById('color-picker').style.display = 'none';
-        conn.send({ type: 'PLAY_CARDS', indexes: pendingCardIndexes, chosenColor: color });
+        conn.send({ type: 'PLAY_SELECTED', indexes: selectedIndices, chosenColor: color });
+        selectedIndices = [];
     }
 
     function drawCard() { conn.send({ type: 'DRAW_CARD' }); }
     function sayUno() { conn.send({ type: 'DECLARE_UNO' }); }
-    function calloutNoUno() { conn.send({ type: 'CALLOUT_NO_UNO' }); }
+
+    function submitVote(voteVal) {
+        document.getElementById('mobile-vote-controls').style.display = 'none';
+        conn.send({ type: 'SUBMIT_VOTE', vote: voteVal });
+    }
 
     function switchScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
     }
-    function showLog(text) { document.getElementById('game-log').innerText = text; }
 </script>
 </body>
 </html>
