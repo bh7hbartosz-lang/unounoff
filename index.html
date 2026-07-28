@@ -3,22 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Makao / UNO - Multi-Screen</title>
+  <title>UNO - EDYCJA WAKACYJNA</title>
+  
+  <!-- Czcionka Google Fonts z pełną obsługą polskich znaków -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
+
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Roboto', sans-serif;
       background: radial-gradient(circle, #1e3c72 0%, #2a5298 100%);
       color: white;
       height: 100vh;
       overflow: hidden;
     }
 
-    /* WYBÓR TRYBU (NA STARTING) */
-    #mode-selector {
-      position: absolute;
+    /* MODALE I MENU STARTOWE */
+    .modal-overlay {
+      position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
-      background: #111;
+      background: rgba(10, 15, 30, 0.95);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -27,20 +33,45 @@
       z-index: 9999;
     }
 
+    .config-box {
+      background: #1e293b;
+      padding: 30px;
+      border-radius: 15px;
+      border: 1px solid #3b82f6;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      width: 320px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+
+    label { font-size: 14px; color: #94a3b8; font-weight: bold; }
+    input {
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #475569;
+      background: #0f172a;
+      color: white;
+      font-size: 16px;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
     button {
-      padding: 15px 30px;
-      font-size: 18px;
-      font-weight: bold;
-      background: #ff9900;
+      padding: 14px 24px;
+      font-size: 16px;
+      font-weight: 700;
+      background: #f59e0b;
       border: none;
-      border-radius: 25px;
+      border-radius: 20px;
       color: white;
       cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      transition: transform 0.1s, background 0.2s;
     }
-    button:hover { background: #e68a00; }
+    button:hover { background: #d97706; transform: scale(1.03); }
 
-    /* --- WIDOK 1: GŁÓWNY EKRAN (STÓŁ) --- */
+    /* --- WIDOK GŁÓWNEGO EKRANU --- */
     #main-screen {
       display: none;
       width: 100vw;
@@ -48,71 +79,102 @@
       position: relative;
     }
 
-    /* AVATARY GRACZY ROZRZUCENI PO KRAWĘDZIACH */
+    .room-header {
+      position: absolute;
+      top: 15px; left: 20px;
+      background: rgba(0,0,0,0.4);
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
     .player-slot {
       position: absolute;
       display: flex;
       flex-direction: column;
       align-items: center;
-      background: rgba(0, 0, 0, 0.5);
-      padding: 15px;
-      border-radius: 15px;
+      background: rgba(15, 23, 42, 0.85);
+      padding: 12px 20px;
+      border-radius: 12px;
       border: 2px solid rgba(255, 255, 255, 0.2);
       z-index: 5;
+      min-width: 120px;
+      transition: border-color 0.3s;
     }
+    .player-slot.dealer { border-color: #f59e0b; box-shadow: 0 0 15px #f59e0b; }
 
-    #p-avatar-0 { bottom: 20px; left: 50%; transform: translateX(-50%); } /* Dół (Gracz 1) */
-    #p-avatar-1 { left: 20px; top: 50%; transform: translateY(-50%); }   /* Lewo (Gracz 2) */
-    #p-avatar-2 { top: 20px; left: 50%; transform: translateX(-50%); }    /* Góra (Gracz 3) */
-    #p-avatar-3 { right: 20px; top: 50%; transform: translateY(-50%); }  /* Prawo (Gracz 4) */
+    /* ROZRZUCENIE AVATARÓW NA CAŁYM EKRANIE */
+    #p-avatar-0 { bottom: 25px; left: 50%; transform: translateX(-50%); } 
+    #p-avatar-1 { left: 25px; top: 50%; transform: translateY(-50%); }   
+    #p-avatar-2 { top: 25px; left: 50%; transform: translateX(-50%); }    
+    #p-avatar-3 { right: 25px; top: 50%; transform: translateY(-50%); }  
 
-    /* STOS I TALIA NA ŚRODKU */
     #center-board {
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
       display: flex;
-      gap: 30px;
+      gap: 40px;
       z-index: 10;
+      align-items: center;
     }
 
-    /* --- KARTY (STYLIZACJA) --- */
+    /* KARTY (NAPRAWIONY TEKST W ŚRODKU) */
     .card {
-      width: 80px;
-      height: 120px;
+      width: 85px;
+      height: 130px;
       border-radius: 10px;
       border: 2px solid white;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 8px;
-      font-weight: bold;
-      font-size: 20px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+      padding: 6px;
+      font-weight: 900;
       position: relative;
       background-color: #333;
+      overflow: hidden;
     }
 
-    .card.red { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
-    .card.blue { background: linear-gradient(135deg, #2193b0, #6dd5ed); }
-    .card.green { background: linear-gradient(135deg, #11998e, #38ef7d); }
-    .card.yellow { background: linear-gradient(135deg, #ffe000, #799f0c); color: #000; }
-    .card.black { background: linear-gradient(135deg, #434343, #000000); }
-    .card.back { background: repeating-linear-gradient(45deg, #b22222, #b22222 10px, #8b0000 10px, #8b0000 20px); }
+    .card.red { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+    .card.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+    .card.green { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
+    .card.yellow { background: linear-gradient(135deg, #eab308, #ca8a04); color: #000; }
+    .card.black { background: linear-gradient(135deg, #334155, #0f172a); color: white; }
+    .card.back { background: repeating-linear-gradient(45deg, #b22222, #b22222 10px, #7f1d1d 10px, #7f1d1d 20px); }
 
-    .card-val-top { align-self: flex-start; }
-    .card-val-bot { align-self: flex-end; transform: rotate(180deg); }
-    .card-color-label { font-size: 11px; text-align: center; text-transform: uppercase; font-weight: 800; }
+    .card-val-top { align-self: flex-start; font-size: 16px; }
+    .card-val-bot { align-self: flex-end; transform: rotate(180deg); font-size: 16px; }
+    
+    /* Naprawiony tekst wewnątrz karty */
+    .card-center-text {
+      font-size: 11px;
+      text-align: center;
+      text-transform: uppercase;
+      font-weight: 900;
+      word-wrap: break-word;
+      line-height: 1.1;
+      padding: 0 2px;
+      max-width: 100%;
+    }
 
-    /* LATAJĄCA KARTA (ANIMACJA OD AVATARA DO STOSU) */
-    .flying-card {
+    /* ANIMACJE LOTU */
+    .animated-card {
       position: absolute;
       z-index: 1000;
-      transition: all 0.7s cubic-bezier(0.25, 1, 0.5, 1);
+      transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
       pointer-events: none;
     }
 
-    /* --- WIDOK 2: TELEFON (KONTROLER GRACZA) --- */
+    .shuffling-deck {
+      animation: shuffle 0.3s infinite alternate;
+    }
+
+    @keyframes shuffle {
+      0% { transform: rotate(-12deg) scale(1.08); }
+      100% { transform: rotate(12deg) scale(1.08); }
+    }
+
+    /* --- WIDOK TELEFONU --- */
     #phone-screen {
       display: none;
       width: 100vw;
@@ -121,7 +183,6 @@
       justify-content: space-between;
       align-items: center;
       padding: 20px 10px;
-      background: #111;
     }
 
     #phone-hand {
@@ -130,65 +191,74 @@
       gap: 10px;
       justify-content: center;
       align-items: center;
-      max-width: 100%;
+      width: 100%;
     }
 
     #phone-hand .card {
       width: 95px;
       height: 145px;
-      font-size: 24px;
       cursor: pointer;
-      transition: transform 0.2s, opacity 0.3s;
     }
 
-    #phone-hand .card:active {
-      transform: scale(0.95);
-    }
-
-    /* ANIMACJA WYRZUCENIA KARTY Z TELEFONU */
     .card-throw-phone {
-      transform: translateY(-500px) scale(0.5) rotate(15deg) !important;
+      transform: translateY(-600px) scale(0.3) !important;
       opacity: 0 !important;
-      transition: all 0.5s ease-in !important;
+      transition: all 0.4s ease-in !important;
     }
 
-    /* NAKŁADKA TASOWANIA NA TELEFONIE */
-    #shuffle-overlay {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.9);
+    #dealer-btn-container {
       display: none;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
-      z-index: 2000;
-    }
-
-    .shuffling-card {
-      animation: shuffleAnim 0.4s infinite alternate;
-    }
-
-    @keyframes shuffleAnim {
-      0% { transform: rotate(-20deg) scale(1.1); }
-      100% { transform: rotate(20deg) scale(1.1); }
+      gap: 10px;
+      margin-bottom: 20px;
     }
   </style>
 </head>
 <body>
 
-  <!-- OKNO WYBORU TRYBU -->
-  <div id="mode-selector">
-    <h2>Wybierz tryb dla tego ekranu:</h2>
-    <button onclick="enableMainScreen()">Otwórz Główny Ekran (Stół / TV)</button>
-    <button onclick="enablePhoneScreen()">Otwórz Telefon Gracza</button>
+  <!-- 1. WYBÓR WIDOKU -->
+  <div id="mode-selector" class="modal-overlay">
+    <h2>Wybierz roślę tego ekranu:</h2>
+    <button onclick="openMainSetup()">Główny Ekran (Stół / TV)</button>
+    <button onclick="openPhoneSetup()">Gracz (Telefon)</button>
   </div>
 
-  <!-- GŁÓWNY EKRAN (STÓŁ) -->
+  <!-- 2. STWORZENIE POKOJU (GŁÓWNY EKRAN) -->
+  <div id="main-setup-modal" class="modal-overlay" style="display: none;">
+    <div class="config-box">
+      <h3 style="text-align: center;">Tworzenie Stolu</h3>
+      <label>Kod Pokoju:</label>
+      <input type="text" id="created-room-code" value="1234" maxlength="6">
+      <button onclick="startMainScreen()">Uruchom Stół</button>
+    </div>
+  </div>
+
+  <!-- 3. DOŁĄCZANIE (TELEFON) -->
+  <div id="phone-setup-modal" class="modal-overlay" style="display: none;">
+    <div class="config-box">
+      <h3 style="text-align: center;">Dołącz do Gry</h3>
+      <label>Twój Nick:</label>
+      <input type="text" id="player-nickname" placeholder="np. Janek" value="Gracz 1">
+      
+      <label>Kod Pokoju:</label>
+      <input type="text" id="join-room-code" value="1234" maxlength="6">
+
+      <button onclick="joinGameFromPhone()">Dołącz</button>
+    </div>
+  </div>
+
+  <!-- 4. WIDOK GŁÓWNEGO EKRANU -->
   <div id="main-screen">
-    <div id="p-avatar-0" class="player-slot"><span>Ty (Dół)</span></div>
-    <div id="p-avatar-1" class="player-slot"><span>Gracz 2 (Lewo)</span></div>
-    <div id="p-avatar-2" class="player-slot"><span>Gracz 3 (Góra)</span></div>
-    <div id="p-avatar-3" class="player-slot"><span>Gracz 4 (Prawo)</span></div>
+    <div class="room-header">
+      Pokój: <strong id="display-room-code">1234</strong>
+    </div>
+
+    <!-- Miejsca dla graczy rozrzucone po całym ekranie -->
+    <div id="p-avatar-0" class="player-slot" style="display:none;"><span class="p-name"></span><small class="p-cards"></small></div>
+    <div id="p-avatar-1" class="player-slot" style="display:none;"><span class="p-name"></span><small class="p-cards"></small></div>
+    <div id="p-avatar-2" class="player-slot" style="display:none;"><span class="p-name"></span><small class="p-cards"></small></div>
+    <div id="p-avatar-3" class="player-slot" style="display:none;"><span class="p-name"></span><small class="p-cards"></small></div>
 
     <div id="center-board">
       <div>
@@ -200,61 +270,282 @@
         <div id="main-discard"></div>
       </div>
     </div>
+
+    <!-- Komunikat na środku o losowaniu -->
+    <div id="roulette-banner" style="display:none; position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.85); padding: 20px 40px; border-radius: 15px; border: 2px solid #f59e0b; text-align: center; z-index: 100;">
+      <h2 id="roulette-text" style="color: #f59e0b;">Losowanie Krupiera...</h2>
+    </div>
   </div>
 
-  <!-- EKRAN TELEFONU -->
+  <!-- 5. WIDOK TELEFONU -->
   <div id="phone-screen">
     <div style="text-align: center;">
-      <h3>Twoja Ręka (Telefon)</h3>
-      <p style="font-size: 12px; color: #aaa;">Wybierz kartę, aby zagrać na głównym ekranie</p>
+      <h3 id="phone-user-title">Twoja Ręka</h3>
+      <p id="status-info" style="font-size: 12px; color: #94a3b8;">Czekaj na rozpoczęcie gry...</p>
+    </div>
+
+    <!-- Przycisk rozdawania gdy ten telefon jest krupierem -->
+    <div id="dealer-btn-container">
+      <p style="color: #f59e0b; font-weight: bold;">Jesteś Krupierem!</p>
+      <button onclick="triggerDealerAction()">Potasuj i Rozdaj Karty</button>
     </div>
 
     <div id="phone-hand"></div>
-
-    <button onclick="triggerShuffleAnimation()">Potasuj i Rozdaj</button>
-  </div>
-
-  <!-- NAKŁADKA ANIMACJI TASOWANIA -->
-  <div id="shuffle-overlay">
-    <div class="card back shuffling-card"></div>
-    <h2 style="margin-top: 20px;">Tasowanie i rozdawanie...</h2>
+    <div></div>
   </div>
 
   <script>
     const COLORS = ['red', 'blue', 'green', 'yellow'];
-    const VALUES = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+2', 'Pomiń', 'Zmiana'];
+    const VALUES = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+2', 'Pomiń ruch', 'Zmiana koloru'];
     
-    // BroadcastChannel umożliwia natychmiastową komunikację między kartami/oknami
-    const channel = new BroadcastChannel('makao_game_channel');
+    const channel = new BroadcastChannel('makao_uno_network');
 
-    let phoneHandCards = [];
+    let currentRoomCode = '';
+    let myNickname = '';
+    let isMainScreen = false;
+    
+    let joinedPlayers = []; // Lista graczy na głównym ekranie
+    let dealerIndex = -1;
     let topDiscardCard = null;
+    let myPhoneCards = [];
 
-    // Wybór Roli Ekranu
-    function enableMainScreen() {
+    // TWORZENIE I WCHODZENIE DO POKOJU
+    function openMainSetup() {
       document.getElementById('mode-selector').style.display = 'none';
+      document.getElementById('main-setup-modal').style.display = 'flex';
+    }
+
+    function openPhoneSetup() {
+      document.getElementById('mode-selector').style.display = 'none';
+      document.getElementById('phone-setup-modal').style.display = 'flex';
+    }
+
+    function startMainScreen() {
+      currentRoomCode = document.getElementById('created-room-code').value.toUpperCase();
+      document.getElementById('main-setup-modal').style.display = 'none';
       document.getElementById('main-screen').style.display = 'block';
-      initMainGame();
+      document.getElementById('display-room-code').textContent = currentRoomCode;
+      isMainScreen = true;
     }
 
-    function enablePhoneScreen() {
-      document.getElementById('mode-selector').style.display = 'none';
+    function joinGameFromPhone() {
+      myNickname = document.getElementById('player-nickname').value.trim() || 'Gracz';
+      currentRoomCode = document.getElementById('join-room-code').value.toUpperCase();
+
+      document.getElementById('phone-setup-modal').style.display = 'none';
       document.getElementById('phone-screen').style.display = 'flex';
-      triggerShuffleAnimation();
+      document.getElementById('phone-user-title').textContent = `Gracz: ${myNickname}`;
+
+      // Powiadom ekran główny o dołączeniu
+      channel.postMessage({
+        type: 'PLAYER_JOINED',
+        room: currentRoomCode,
+        nickname: myNickname
+      });
     }
 
-    // --- LOGIKA DLA GŁÓWNEGO EKRANU ---
-    function initMainGame() {
-      // Wygeneruj pierwszą zwykłą kartę
-      topDiscardCard = generateValidStartCard();
-      renderMainDiscard();
+    // OSŁUCHOWANIE KOMUNIKATÓW MIĘDZY EKRANAMI
+    channel.onmessage = (event) => {
+      const data = event.data;
+      if (data.room !== currentRoomCode) return; // Odrzucamy wiadomości z innych pokoi
+
+      // GŁÓWNY EKRAN ODBIERA DOŁĄCZENIE GRACZA
+      if (isMainScreen && data.type === 'PLAYER_JOINED') {
+        if (!joinedPlayers.find(p => p.nickname === data.nickname) && joinedPlayers.length < 4) {
+          joinedPlayers.push({ nickname: data.nickname, cardCount: 0 });
+          updateAvatarsUI();
+
+          // Jeśli jest przynajmniej 2 graczy, uruchom losowanie Krupiera
+          if (joinedPlayers.length >= 2 && dealerIndex === -1) {
+            startDealerRoulette();
+          }
+        }
+      }
+
+      // TELEFON ODBIERA INFORMACJĘ ZE JEST KRUPIEREM
+      if (!isMainScreen && data.type === 'YOU_ARE_DEALER') {
+        if (data.targetNickname === myNickname) {
+          document.getElementById('dealer-btn-container').style.display = 'flex';
+          document.getElementById('status-info').textContent = 'Twoja kolej na potasowanie i rozdanie!';
+        } else {
+          document.getElementById('dealer-btn-container').style.display = 'none';
+          document.getElementById('status-info').textContent = `Krupier (${data.dealerName}) tasuje karty...`;
+        }
+      }
+
+      // AKCJA ROZDAWANIA Z TELEFONU KRUPIERA DO GŁÓWNEGO EKRANU
+      if (isMainScreen && data.type === 'EXECUTE_DEAL') {
+        runShufflingAndDealingAnimation();
+      }
+
+      // TELEFON ODBIERA KARTY PO ROZDANIU
+      if (!isMainScreen && data.type === 'DISTRIBUTE_HAND') {
+        if (data.targetNickname === myNickname) {
+          myPhoneCards = data.cards;
+          renderPhoneHand();
+          document.getElementById('dealer-btn-container').style.display = 'none';
+          document.getElementById('status-info').textContent = 'Karty rozdane! Wybierz kartę z ręki.';
+        }
+      }
+
+      // GŁÓWNY EKRAN ODBIERA ZAGRANĄ KARTĘ
+      if (isMainScreen && data.type === 'PLAY_CARD') {
+        const pIndex = joinedPlayers.findIndex(p => p.nickname === data.nickname);
+        if (pIndex !== -1 && joinedPlayers[pIndex].cardCount > 0) {
+          joinedPlayers[pIndex].cardCount--;
+          updateAvatarsUI();
+          animateCardToDiscard(data.card, pIndex);
+        }
+      }
+    };
+
+    // UPDATE DANYCH GRACZY NA GŁÓWNYM EKRANIE
+    function updateAvatarsUI() {
+      joinedPlayers.forEach((p, idx) => {
+        const slot = document.getElementById(`p-avatar-${idx}`);
+        slot.style.display = 'flex';
+        slot.querySelector('.p-name').textContent = p.nickname;
+        slot.querySelector('.p-cards').textContent = `Karty: ${p.cardCount}`;
+        
+        if (idx === dealerIndex) slot.classList.add('dealer');
+        else slot.classList.remove('dealer');
+      });
     }
 
-    function generateValidStartCard() {
-      // Upewniamy się, że pierwsza karta nie jest funkcjonalna (+2, pomiń, zmiana koloru)
-      const color = COLORS[Math.floor(Math.random() * COLORS.length)];
-      const numberValue = Math.floor(Math.random() * 10).toString(); // Zwykła cyfra 0-9
-      return { color, value: numberValue };
+    // LOSOWANIE KRUPIERA NA ŚRODKU EKRANU
+    function startDealerRoulette() {
+      const banner = document.getElementById('roulette-banner');
+      const text = document.getElementById('roulette-text');
+      banner.style.display = 'block';
+
+      let count = 0;
+      const interval = setInterval(() => {
+        const tempIdx = count % joinedPlayers.length;
+        text.textContent = `Tasować będzie: ${joinedPlayers[tempIdx].nickname}`;
+        count++;
+
+        if (count > 15) {
+          clearInterval(interval);
+          dealerIndex = Math.floor(Math.random() * joinedPlayers.length);
+          const chosenDealer = joinedPlayers[dealerIndex];
+          text.textContent = `Krupier: ${chosenDealer.nickname}!`;
+          
+          updateAvatarsUI();
+
+          setTimeout(() => {
+            banner.style.display = 'none';
+            // Wyślij sygnał do telefonów kto ma przycisk rozdawania
+            channel.postMessage({
+              type: 'YOU_ARE_DEALER',
+              room: currentRoomCode,
+              targetNickname: chosenDealer.nickname,
+              dealerName: chosenDealer.nickname
+            });
+          }, 1500);
+        }
+      }, 150);
+    }
+
+    // TELEFON KLIKA "POTASUJ I ROZDAJ"
+    function triggerDealerAction() {
+      channel.postMessage({
+        type: 'EXECUTE_DEAL',
+        room: currentRoomCode
+      });
+    }
+
+    // ANIMACJA TASOWANIA I ROZDAWANIA NA GŁÓWNYM EKRANIE
+    function runShufflingAndDealingAnimation() {
+      const deckUI = document.getElementById('main-deck');
+      deckUI.classList.add('shuffling-deck');
+
+      setTimeout(() => {
+        deckUI.classList.remove('shuffling-deck');
+        
+        // Zawsze pierwsza karta na stole to zwykła cyfra (0-9)
+        const startColor = COLORS[Math.floor(Math.random() * COLORS.length)];
+        const startValue = Math.floor(Math.random() * 10).toString();
+        topDiscardCard = { color: startColor, value: startValue };
+        renderMainDiscard();
+
+        // Generuj i wyślij karty wszystkim po kolei
+        joinedPlayers.forEach((player, pIdx) => {
+          const cardsForPlayer = [];
+          for (let c = 0; c < 5; c++) {
+            cardsForPlayer.push({
+              color: COLORS[Math.floor(Math.random() * COLORS.length)],
+              value: VALUES[Math.floor(Math.random() * VALUES.length)]
+            });
+          }
+          player.cardCount = 5;
+
+          // Animacja wylotu kart ze środka do danego gracza
+          for (let i = 0; i < 5; i++) {
+            setTimeout(() => animateCardDeal(pIdx), (pIdx * 5 + i) * 100);
+          }
+
+          // Wyślij graczowi jego zestaw kart
+          channel.postMessage({
+            type: 'DISTRIBUTE_HAND',
+            room: currentRoomCode,
+            targetNickname: player.nickname,
+            cards: cardsForPlayer
+          });
+        });
+
+        updateAvatarsUI();
+      }, 1200);
+    }
+
+    function animateCardDeal(playerIndex) {
+      const deckElem = document.getElementById('main-deck');
+      const avatarElem = document.getElementById(`p-avatar-${playerIndex}`);
+
+      const dRect = deckElem.getBoundingClientRect();
+      const aRect = avatarElem.getBoundingClientRect();
+
+      const flyingCard = createCardUI({ color: 'black', value: '' }, true);
+      flyingCard.classList.add('animated-card');
+      
+      flyingCard.style.left = `${dRect.left}px`;
+      flyingCard.style.top = `${dRect.top}px`;
+
+      document.body.appendChild(flyingCard);
+      flyingCard.getBoundingClientRect(); // Reflow
+
+      flyingCard.style.left = `${aRect.left + 10}px`;
+      flyingCard.style.top = `${aRect.top + 10}px`;
+      flyingCard.style.transform = 'scale(0.3)';
+      flyingCard.style.opacity = '0.3';
+
+      setTimeout(() => flyingCard.remove(), 600);
+    }
+
+    function animateCardToDiscard(card, playerIndex) {
+      const avatarElem = document.getElementById(`p-avatar-${playerIndex}`);
+      const discardElem = document.getElementById('main-discard');
+
+      const aRect = avatarElem.getBoundingClientRect();
+      const dRect = discardElem.getBoundingClientRect();
+
+      const flyingCard = createCardUI(card);
+      flyingCard.classList.add('animated-card');
+
+      flyingCard.style.left = `${aRect.left}px`;
+      flyingCard.style.top = `${aRect.top}px`;
+
+      document.body.appendChild(flyingCard);
+      flyingCard.getBoundingClientRect();
+
+      flyingCard.style.left = `${dRect.left}px`;
+      flyingCard.style.top = `${dRect.top}px`;
+      flyingCard.style.transform = `rotate(${Math.floor(Math.random() * 30) - 15}deg)`;
+
+      setTimeout(() => {
+        topDiscardCard = card;
+        renderMainDiscard();
+        flyingCard.remove();
+      }, 600);
     }
 
     function renderMainDiscard() {
@@ -265,112 +556,51 @@
       }
     }
 
-    // ANIMACJA PRZELOTU KARTY OD AVATARA DO STOSU NA GŁÓWNYM EKRANIE
-    function animateCardToDiscard(card, playerIndex = 0) {
-      const avatar = document.getElementById(`p-avatar-${playerIndex}`);
-      const discard = document.getElementById('main-discard');
-
-      const avatarRect = avatar.getBoundingClientRect();
-      const discardRect = discard.getBoundingClientRect();
-
-      // Tworzenie tymczasowej karty do animacji
-      const flyingCard = createCardUI(card);
-      flyingCard.classList.add('flying-card');
-      
-      // Start w punkcie Avatara
-      flyingCard.style.left = `${avatarRect.left + avatarRect.width / 2 - 40}px`;
-      flyingCard.style.top = `${avatarRect.top + avatarRect.height / 2 - 60}px`;
-
-      document.body.appendChild(flyingCard);
-
-      // Wymuszenie reflow dla płynnej animacji CSS
-      flyingCard.getBoundingClientRect();
-
-      // Przesunięcie na środek (stos) + obrót
-      flyingCard.style.left = `${discardRect.left}px`;
-      flyingCard.style.top = `${discardRect.top}px`;
-      flyingCard.style.transform = `rotate(${Math.floor(Math.random() * 40) - 20}deg)`;
-
-      // Po zakończeniu lotu podmień kartę na stosie i usuń obiekt animacji
-      setTimeout(() => {
-        topDiscardCard = card;
-        renderMainDiscard();
-        flyingCard.remove();
-      }, 700);
-    }
-
-    // --- LOGIKA DLA TELEFONU ---
-    function triggerShuffleAnimation() {
-      const overlay = document.getElementById('shuffle-overlay');
-      overlay.style.display = 'flex';
-
-      setTimeout(() => {
-        overlay.style.display = 'none';
-        generatePhoneHand();
-        renderPhoneHand();
-      }, 1200);
-    }
-
-    function generatePhoneHand() {
-      phoneHandCards = [];
-      for (let i = 0; i < 5; i++) {
-        const color = COLORS[Math.floor(Math.random() * COLORS.length)];
-        const value = VALUES[Math.floor(Math.random() * VALUES.length)];
-        phoneHandCards.push({ color, value });
-      }
-    }
-
+    // TELEFON RZUCA KARTĘ
     function renderPhoneHand() {
       const handUI = document.getElementById('phone-hand');
       handUI.innerHTML = '';
 
-      phoneHandCards.forEach((card, index) => {
+      myPhoneCards.forEach((card, index) => {
         const cardUI = createCardUI(card);
-        cardUI.onclick = (e) => playCardFromPhone(index, e.currentTarget);
+        cardUI.onclick = (e) => playPhoneCard(index, e.currentTarget);
         handUI.appendChild(cardUI);
       });
     }
 
-    function playCardFromPhone(index, cardElement) {
-      const playedCard = phoneHandCards[index];
+    function playPhoneCard(index, cardElem) {
+      const card = myPhoneCards[index];
 
-      // Animacja znikania z ekranu telefonu (wylot w górę)
-      cardElement.classList.add('card-throw-phone');
+      cardElem.classList.add('card-throw-phone');
 
-      // Wyślij wiadomość do Głównego Ekranu
       channel.postMessage({
         type: 'PLAY_CARD',
-        card: playedCard,
-        playerIndex: 0 // Gracz wysyłający (Dół)
+        room: currentRoomCode,
+        nickname: myNickname,
+        card: card
       });
 
       setTimeout(() => {
-        phoneHandCards.splice(index, 1);
+        myPhoneCards.splice(index, 1);
         renderPhoneHand();
-      }, 500);
+      }, 400);
     }
 
-    // POMOCNICZE TWORZENIE DOM KARTY
-    function createCardUI(card) {
+    // POMOCNICZE GENEROWANIE UI KARTY Z POPRAWNYM TEKSTEM
+    function createCardUI(card, isBack = false) {
       const div = document.createElement('div');
+      if (isBack) {
+        div.className = 'card back';
+        return div;
+      }
       div.className = `card ${card.color}`;
       div.innerHTML = `
         <div class="card-val-top">${card.value}</div>
-        <div class="card-color-label">${card.color}</div>
+        <div class="card-center-text">${card.value}</div>
         <div class="card-val-bot">${card.value}</div>
       `;
       return div;
     }
-
-    // NASŁUCHIVANIE KOMUNIKATÓW MIĘDZY EKRANAMI
-    channel.onmessage = (event) => {
-      const { type, card, playerIndex } = event.data;
-
-      if (type === 'PLAY_CARD') {
-        // Gdy otrzyma sygnał z telefonu – uruchamia animację lotu na głównym ekranie
-        animateCardToDiscard(card, playerIndex);
-      }
-    };
   </script>
 </body>
 </html>
