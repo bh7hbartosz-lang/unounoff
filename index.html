@@ -1,735 +1,376 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>UNO VACATION EDITION</title>
-    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --sun-yellow: #FFD166;
-            --ocean-blue: #06D6A0;
-            --deep-blue: #118AB2;
-            --coral-red: #EF476F;
-            --sand-gold: #FFE8A3;
-            --palm-green: #073B4C;
-            --card-red: #FF4757;
-            --card-blue: #1E90FF;
-            --card-green: #2ED573;
-            --card-yellow: #FFA502;
-            --card-black: #2F3542;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Makao / UNO - Multi-Screen</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(circle, #1e3c72 0%, #2a5298 100%);
+      color: white;
+      height: 100vh;
+      overflow: hidden;
+    }
 
-        * { box-sizing: border-box; font-family: 'Nunito', sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+    /* WYBÓR TRYBU (NA STARTING) */
+    #mode-selector {
+      position: absolute;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      z-index: 9999;
+    }
 
-        body {
-            margin: 0; background: #073B4C; color: #fff; overflow: hidden; height: 100vh; height: -webkit-fill-available;
-        }
+    button {
+      padding: 15px 30px;
+      font-size: 18px;
+      font-weight: bold;
+      background: #ff9900;
+      border: none;
+      border-radius: 25px;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+    button:hover { background: #e68a00; }
 
-        /* WAKACYJNE TŁO TROPIKALNE */
-        .vacation-bg {
-            position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 0; pointer-events: none;
-            background: linear-gradient(180deg, #2980b9 0%, #6dd5fa 40%, #f7d794 80%, #f3a683 100%);
-            transition: background 0.8s ease;
-        }
+    /* --- WIDOK 1: GŁÓWNY EKRAN (STÓŁ) --- */
+    #main-screen {
+      display: none;
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
 
-        body.color-red .vacation-bg { background: linear-gradient(180deg, #d63031 0%, #ff7675 60%, #ffeaa7 100%); }
-        body.color-blue .vacation-bg { background: linear-gradient(180deg, #0984e3 0%, #74b9ff 60%, #ffeaa7 100%); }
-        body.color-green .vacation-bg { background: linear-gradient(180deg, #00b894 0%, #55efc4 60%, #ffeaa7 100%); }
-        body.color-yellow .vacation-bg { background: linear-gradient(180deg, #fdcb6e 0%, #ffeaa7 60%, #fab1a0 100%); }
+    /* AVATARY GRACZY ROZRZUCENI PO KRAWĘDZIACH */
+    .player-slot {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 15px;
+      border-radius: 15px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      z-index: 5;
+    }
 
-        /* SŁOŃCE I CHMURY */
-        .sun {
-            position: absolute; top: 30px; right: 50px; width: 120px; height: 120px;
-            background: radial-gradient(circle, #fff700 30%, #ffaa00 100%);
-            border-radius: 50%; box-shadow: 0 0 50px #ffaa00, 0 0 100px #fff700;
-            animation: pulseSun 4s infinite alternate;
-        }
-        @keyframes pulseSun { 0% { transform: scale(1); } 100% { transform: scale(1.08); } }
+    #p-avatar-0 { bottom: 20px; left: 50%; transform: translateX(-50%); } /* Dół (Gracz 1) */
+    #p-avatar-1 { left: 20px; top: 50%; transform: translateY(-50%); }   /* Lewo (Gracz 2) */
+    #p-avatar-2 { top: 20px; left: 50%; transform: translateX(-50%); }    /* Góra (Gracz 3) */
+    #p-avatar-3 { right: 20px; top: 50%; transform: translateY(-50%); }  /* Prawo (Gracz 4) */
 
-        .screen { display: none; padding: 15px; text-align: center; height: 100vh; flex-direction: column; justify-content: center; align-items: center; position: relative; z-index: 1; }
-        .screen.active { display: flex; }
+    /* STOS I TALIA NA ŚRODKU */
+    #center-board {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      gap: 30px;
+      z-index: 10;
+    }
 
-        h1.title-vacation {
-            font-family: 'Fredoka One', cursive; font-size: 3.5rem; color: #FFF;
-            text-shadow: 4px 4px 0px #EF476F, 8px 8px 0px #118AB2;
-            margin-bottom: 20px; letter-spacing: 2px;
-        }
+    /* --- KARTY (STYLIZACJA) --- */
+    .card {
+      width: 80px;
+      height: 120px;
+      border-radius: 10px;
+      border: 2px solid white;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 8px;
+      font-weight: bold;
+      font-size: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+      position: relative;
+      background-color: #333;
+    }
 
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            border: 3px solid rgba(255, 255, 255, 0.5); border-radius: 28px; padding: 25px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); width: 100%; max-width: 460px; color: #073B4C;
-        }
+    .card.red { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
+    .card.blue { background: linear-gradient(135deg, #2193b0, #6dd5ed); }
+    .card.green { background: linear-gradient(135deg, #11998e, #38ef7d); }
+    .card.yellow { background: linear-gradient(135deg, #ffe000, #799f0c); color: #000; }
+    .card.black { background: linear-gradient(135deg, #434343, #000000); }
+    .card.back { background: repeating-linear-gradient(45deg, #b22222, #b22222 10px, #8b0000 10px, #8b0000 20px); }
 
-        label { display: block; text-align: left; font-weight: 900; color: #073B4C; margin: 10px 0 4px 5px; font-size: 1rem; }
-        input, select {
-            padding: 14px; font-size: 1.1rem; border-radius: 16px; border: 2px solid #118AB2;
-            background: rgba(255, 255, 255, 0.9); color: #073B4C; margin-bottom: 12px; width: 100%;
-            text-align: center; font-weight: 900; outline: none; font-family: 'Nunito', sans-serif;
-        }
+    .card-val-top { align-self: flex-start; }
+    .card-val-bot { align-self: flex-end; transform: rotate(180deg); }
+    .card-color-label { font-size: 11px; text-align: center; text-transform: uppercase; font-weight: 800; }
 
-        .btn {
-            padding: 16px 20px; font-size: 1.1rem; font-family: 'Fredoka One', cursive; border-radius: 18px; border: none;
-            cursor: pointer; color: #fff; background: linear-gradient(135deg, #EF476F, #FF6B6B);
-            box-shadow: 0 8px 0px #C0392B; width: 100%; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;
-            transition: all 0.1s ease;
-        }
-        .btn:active { transform: translateY(4px); box-shadow: 0 4px 0px #C0392B; }
-        .btn-green { background: linear-gradient(135deg, #06D6A0, #1DD1A1); box-shadow: 0 8px 0px #10AC84; color: #073B4C; }
-        .btn-green:active { box-shadow: 0 4px 0px #10AC84; }
-        .btn-yellow { background: linear-gradient(135deg, #FFD166, #FF9F43); box-shadow: 0 8px 0px #EE5253; color: #073B4C; }
-        .btn-blue { background: linear-gradient(135deg, #118AB2, #2980B9); box-shadow: 0 8px 0px #0984E3; color: #FFF; }
+    /* LATAJĄCA KARTA (ANIMACJA OD AVATARA DO STOSU) */
+    .flying-card {
+      position: absolute;
+      z-index: 1000;
+      transition: all 0.7s cubic-bezier(0.25, 1, 0.5, 1);
+      pointer-events: none;
+    }
 
-        /* GIGANTYCZNE KARTY PC WAKACJE */
-        .card {
-            width: 180px; height: 270px; border-radius: 24px; border: 6px solid #FFFFFF;
-            display: flex; flex-direction: column; justify-content: space-between; align-items: center;
-            position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.4); cursor: pointer;
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); flex-shrink: 0; padding: 12px;
-            background-size: cover; background-position: center;
-        }
-        .card::before {
-            content: ''; position: absolute; width: 85%; height: 75%; background: rgba(255, 255, 255, 0.25);
-            border-radius: 50%; transform: rotate(-25deg); border: 2px dashed rgba(255,255,255,0.6);
-        }
-        .card-inner { position: relative; z-index: 2; font-family: 'Fredoka One', cursive; font-size: 5rem; color: #FFF; text-shadow: 4px 4px 0px rgba(0,0,0,0.4); margin: auto; }
-        .card-corner { position: absolute; font-family: 'Fredoka One', cursive; font-size: 1.5rem; color: #FFF; text-shadow: 2px 2px 0px rgba(0,0,0,0.4); z-index: 3; }
-        .card-corner.top-left { top: 10px; left: 14px; }
-        .card-corner.bottom-right { bottom: 10px; right: 14px; transform: rotate(180deg); }
+    /* --- WIDOK 2: TELEFON (KONTROLER GRACZA) --- */
+    #phone-screen {
+      display: none;
+      width: 100vw;
+      height: 100vh;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 10px;
+      background: #111;
+    }
 
-        .card.red { background-color: var(--card-red); border-color: #FF85A2; }
-        .card.blue { background-color: var(--card-blue); border-color: #70A1FF; }
-        .card.green { background-color: var(--card-green); border-color: #7BED9F; }
-        .card.yellow { background-color: var(--card-yellow); border-color: #FFEAA7; }
-        .card.black { background-color: var(--card-black); border-color: #FFD166; }
+    #phone-hand {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+      max-width: 100%;
+    }
 
-        /* MINI KARTY TELEFON */
-        .mobile-card { width: 100px; height: 155px; border-radius: 16px; border: 4px solid #FFF; padding: 6px; }
-        .mobile-card .card-inner { font-size: 2.8rem; }
-        .mobile-card.selected { transform: translateY(-25px) scale(1.08); border-color: #FFD166; box-shadow: 0 0 25px #FFD166; }
+    #phone-hand .card {
+      width: 95px;
+      height: 145px;
+      font-size: 24px;
+      cursor: pointer;
+      transition: transform 0.2s, opacity 0.3s;
+    }
 
-        /* WAKACYJNY RENDER EKRAMU PC */
-        #pc-board { display: grid; grid-template-rows: auto 1fr auto; height: 100vh; padding: 20px; gap: 15px; width: 100%; max-width: 1400px; }
-        .top-bar-vacation { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.3); backdrop-filter: blur(10px); padding: 15px 30px; border-radius: 25px; border: 2px solid #FFF; }
-        
-        .table-center { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; position: relative; }
-        .cards-area { display: flex; gap: 60px; align-items: center; position: relative; }
+    #phone-hand .card:active {
+      transform: scale(0.95);
+    }
 
-        /* PROFILE GRACZY W NAROŻNIKACH / NA OKRĘGU */
-        .player-avatar-vacation {
-            width: 75px; height: 75px; border-radius: 50%; background: #FFD166; border: 4px solid #FFF;
-            display: flex; justify-content: center; align-items: center; font-size: 2.2rem;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2); position: relative;
-        }
-        .player-box-vacation {
-            display: flex; flex-direction: column; align-items: center; background: rgba(255,255,255,0.35);
-            backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 24px; border: 3px solid #FFF; min-width: 150px;
-            transition: all 0.3s ease; position: relative;
-        }
-        .player-box-vacation.active-turn {
-            background: rgba(6, 214, 160, 0.8); border-color: #FFD166; transform: scale(1.1); box-shadow: 0 0 35px #06D6A0;
-        }
-        .turn-dot {
-            width: 20px; height: 20px; border-radius: 50%; background: #FFD166; border: 3px solid #FFF;
-            position: absolute; top: -5px; right: -5px; display: none; animation: blinkDot 0.8s infinite alternate;
-        }
-        .player-box-vacation.active-turn .turn-dot { display: block; }
-        @keyframes blinkDot { 0% { opacity: 0.3; } 100% { opacity: 1; transform: scale(1.2); } }
+    /* ANIMACJA WYRZUCENIA KARTY Z TELEFONU */
+    .card-throw-phone {
+      transform: translateY(-500px) scale(0.5) rotate(15deg) !important;
+      opacity: 0 !important;
+      transition: all 0.5s ease-in !important;
+    }
 
-        /* EKRAN TASOWANIA I ROZDAWANIA */
-        .dealer-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(7, 59, 76, 0.95);
-            z-index: 500; display: none; flex-direction: column; justify-content: center; align-items: center;
-        }
-        .deck-shuffle-anim {
-            width: 160px; height: 240px; border-radius: 20px; background: #FFD166; border: 5px solid #FFF;
-            animation: shuffleCards 1.2s infinite ease-in-out; display: flex; justify-content: center; align-items: center;
-            font-family: 'Fredoka One', cursive; font-size: 2rem; color: #073B4C;
-        }
-        @keyframes shuffleCards {
-            0% { transform: rotate(0deg) translateX(0); }
-            25% { transform: rotate(-15deg) translateX(-40px); }
-            50% { transform: rotate(15deg) translateX(40px); }
-            100% { transform: rotate(0deg) translateX(0); }
-        }
+    /* NAKŁADKA TASOWANIA NA TELEFONIE */
+    #shuffle-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
 
-        /* EKRAN BLOKADY TELEFON PEŁNY */
-        .blocked-full-screen {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle, #EF476F 0%, #073B4C 100%);
-            z-index: 999; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center;
-        }
-        .blocked-full-screen .icon { font-size: 7rem; animation: lockPulse 1s infinite alternate; }
-        @keyframes lockPulse { 0% { transform: scale(0.9); } 100% { transform: scale(1.2); } }
+    .shuffling-card {
+      animation: shuffleAnim 0.4s infinite alternate;
+    }
 
-        /* PRZYCISK WYŁÓŻ SELEKCJĘ / COMBO */
-        .multi-select-bar {
-            background: rgba(255, 209, 102, 0.95); border: 3px solid #FFF; border-radius: 20px; padding: 12px;
-            width: 100%; display: none; margin-bottom: 10px; color: #073B4C; font-weight: 900;
-        }
-
-        /* PODGLĄD OBECNEJ KARTY NA TELEFONIE */
-        .mobile-top-card-preview {
-            position: absolute; top: 10px; right: 10px; display: flex; align-items: center; gap: 8px;
-            background: rgba(255,255,255,0.3); padding: 6px 12px; border-radius: 16px; border: 2px solid #FFF;
-        }
-        .mini-preview-card { width: 35px; height: 50px; border-radius: 8px; border: 2px solid #FFF; display: flex; justify-content: center; align-items: center; font-weight: 900; font-size: 1rem; color: #FFF; }
-
-        /* KARTY W LOCIE - ANIMACJA */
-        .flying-card {
-            position: fixed; z-index: 900; transition: all 0.7s cubic-bezier(0.25, 1, 0.5, 1); pointer-events: none;
-        }
-
-        /* MODAL GŁOSOWANIA I REPLAY */
-        .vote-box { background: rgba(255,255,255,0.95); border-radius: 25px; padding: 25px; color: #073B4C; max-width: 400px; text-align: center; }
-    </style>
+    @keyframes shuffleAnim {
+      0% { transform: rotate(-20deg) scale(1.1); }
+      100% { transform: rotate(20deg) scale(1.1); }
+    }
+  </style>
 </head>
 <body>
 
-    <div class="vacation-bg" id="bg-vacation"></div>
-    <div class="sun"></div>
+  <!-- OKNO WYBORU TRYBU -->
+  <div id="mode-selector">
+    <h2>Wybierz tryb dla tego ekranu:</h2>
+    <button onclick="enableMainScreen()">Otwórz Główny Ekran (Stół / TV)</button>
+    <button onclick="enablePhoneScreen()">Otwórz Telefon Gracza</button>
+  </div>
 
-    <!-- 1. START SCREEN -->
-    <div id="start-screen" class="screen active">
-        <h1 class="title-vacation">🏝️ UNO VACATION</h1>
-        <div class="glass-panel">
-            <button class="btn btn-green" onclick="initHost()">STWÓRZ POKÓJ (PC/TV)</button>
-            <div style="margin: 15px 0; color: #073B4C; font-size: 1rem; font-weight: 900;">— LUB DOŁĄCZ NA TELEFONIE —</div>
-            <input type="text" id="join-code" placeholder="KOD POKOJU" style="text-transform: uppercase;">
-            <input type="text" id="player-name" placeholder="TWOJE IMIĘ">
-            <button class="btn btn-yellow" onclick="initClient()">DOŁĄCZ DO GRY</button>
-            <div id="connection-status" style="font-size:0.9rem; color: #073B4C; margin-top: 8px; font-weight: 900;"></div>
-        </div>
+  <!-- GŁÓWNY EKRAN (STÓŁ) -->
+  <div id="main-screen">
+    <div id="p-avatar-0" class="player-slot"><span>Ty (Dół)</span></div>
+    <div id="p-avatar-1" class="player-slot"><span>Gracz 2 (Lewo)</span></div>
+    <div id="p-avatar-2" class="player-slot"><span>Gracz 3 (Góra)</span></div>
+    <div id="p-avatar-3" class="player-slot"><span>Gracz 4 (Prawo)</span></div>
+
+    <div id="center-board">
+      <div>
+        <small>Talia</small>
+        <div id="main-deck" class="card back"></div>
+      </div>
+      <div>
+        <small>Stos</small>
+        <div id="main-discard"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EKRAN TELEFONU -->
+  <div id="phone-screen">
+    <div style="text-align: center;">
+      <h3>Twoja Ręka (Telefon)</h3>
+      <p style="font-size: 12px; color: #aaa;">Wybierz kartę, aby zagrać na głównym ekranie</p>
     </div>
 
-    <!-- 2. LOBBY HOST (PC) -->
-    <div id="host-lobby-screen" class="screen">
-        <h1 class="title-vacation">🏖️ WAKACYJNE LOBBY</h1>
-        <div class="glass-panel">
-            <div style="font-size: 1.4rem; font-weight: 900; margin-bottom: 10px; color: #073B4C;">KOD POKOJU: <span id="lobby-room-code" style="color:#EF476F; font-size: 1.8rem;">----</span></div>
+    <div id="phone-hand"></div>
 
-            <label>TRYB POZIOMU TRUDNOŚCI:</label>
-            <select id="difficulty-select">
-                <option value="normal">🌴 Normalny (Klasyczne UNO)</option>
-                <option value="medium">☀️ Średni (Szybsze tempo)</option>
-                <option value="hard">🔥 Trudny (Szybki czas na ruch)</option>
-                <option value="hardcore">☠️ Hardcore (Brak podglądu kart stół)</option>
-            </select>
+    <button onclick="triggerShuffleAnimation()">Potasuj i Rozdaj</button>
+  </div>
 
-            <label>WPISZ LICZBĘ KART NA START:</label>
-            <input type="number" id="custom-cards-count" value="7" min="1" max="20">
+  <!-- NAKŁADKA ANIMACJI TASOWANIA -->
+  <div id="shuffle-overlay">
+    <div class="card back shuffling-card"></div>
+    <h2 style="margin-top: 20px;">Tasowanie i rozdawanie...</h2>
+  </div>
 
-            <label>PODŁĄCZENI GRACZE:</label>
-            <div id="lobby-players-list" style="margin: 15px 0; max-height: 160px; overflow-y: auto;"></div>
+  <script>
+    const COLORS = ['red', 'blue', 'green', 'yellow'];
+    const VALUES = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+2', 'Pomiń', 'Zmiana'];
+    
+    // BroadcastChannel umożliwia natychmiastową komunikację między kartami/oknami
+    const channel = new BroadcastChannel('makao_game_channel');
 
-            <button class="btn btn-green" id="start-game-btn" onclick="startDealySequence()" style="display:none;">ROZPOCZNIJ ROZDANIE KART 🎴</button>
-        </div>
-    </div>
+    let phoneHandCards = [];
+    let topDiscardCard = null;
 
-    <!-- EKRAN ROZDAWANIA KART NA PC -->
-    <div id="dealer-modal" class="dealer-overlay">
-        <h1 class="title-vacation" id="dealer-title">LOSOWANIE ROZDAJĄCEGO...</h1>
-        <div class="deck-shuffle-anim" id="shuffle-box">UNO</div>
-        <h2 style="color: #FFD166; font-size: 2rem; font-family: 'Fredoka One', cursive; margin-top: 20px;" id="dealer-name-display">...</h2>
-        <button class="btn btn-yellow" id="confirm-deal-btn" style="display:none; max-width: 300px; margin-top: 20px;" onclick="finishDealingAndStart()">ROZDAJ KARTY! 🎴</button>
-    </div>
+    // Wybór Roli Ekranu
+    function enableMainScreen() {
+      document.getElementById('mode-selector').style.display = 'none';
+      document.getElementById('main-screen').style.display = 'block';
+      initMainGame();
+    }
 
-    <!-- 3. MAIN EKRAN PC -->
-    <div id="pc-screen" class="screen">
-        <div id="pc-board">
-            <div class="top-bar-vacation">
-                <div style="font-size: 1.5rem; font-weight: 900; color: #073B4C;">KOD: <span id="display-room-code" style="color:#EF476F;">----</span></div>
-                <div id="game-log" style="font-size: 1.8rem; font-family: 'Fredoka One', cursive; color: #073B4C;">Plażowe UNO!</div>
-                <div id="deck-left-count" style="font-weight: 900; color: #073B4C; font-size: 1.3rem;">TALIA: 0</div>
-            </div>
+    function enablePhoneScreen() {
+      document.getElementById('mode-selector').style.display = 'none';
+      document.getElementById('phone-screen').style.display = 'flex';
+      triggerShuffleAnimation();
+    }
 
-            <div class="table-center">
-                <div class="cards-area">
-                    <div class="card black" style="background-color: #073B4C;"><div class="card-inner">🏖️</div></div>
-                    <div id="top-card" class="card red"><div class="card-inner">?</div></div>
-                </div>
-                <div id="current-color-indicator" style="font-size: 1.8rem; font-family: 'Fredoka One', cursive; color: #073B4C; text-shadow: 2px 2px 0 #FFF;"></div>
-            </div>
+    // --- LOGIKA DLA GŁÓWNEGO EKRANU ---
+    function initMainGame() {
+      // Wygeneruj pierwszą zwykłą kartę
+      topDiscardCard = generateValidStartCard();
+      renderMainDiscard();
+    }
 
-            <div id="players-circle" style="display: flex; justify-content: space-around; align-items: center; width: 100%;"></div>
-        </div>
-    </div>
+    function generateValidStartCard() {
+      // Upewniamy się, że pierwsza karta nie jest funkcjonalna (+2, pomiń, zmiana koloru)
+      const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+      const numberValue = Math.floor(Math.random() * 10).toString(); // Zwykła cyfra 0-9
+      return { color, value: numberValue };
+    }
 
-    <!-- 4. EKRAN TELEFONU GRACZA -->
-    <div id="mobile-screen" class="screen">
-        <div class="mobile-top-card-preview">
-            <span style="font-size: 0.8rem; font-weight: 900; color: #073B4C;">NA STOLE:</span>
-            <div id="mobile-preview-card" class="mini-preview-card red">?</div>
-        </div>
+    function renderMainDiscard() {
+      const discardUI = document.getElementById('main-discard');
+      discardUI.innerHTML = '';
+      if (topDiscardCard) {
+        discardUI.appendChild(createCardUI(topDiscardCard));
+      }
+    }
 
-        <div id="turn-status" style="font-size: 1.4rem; font-family: 'Fredoka One', cursive; color: #073B4C; margin-top: 30px;">Czekam na grę...</div>
+    // ANIMACJA PRZELOTU KARTY OD AVATARA DO STOSU NA GŁÓWNYM EKRANIE
+    function animateCardToDiscard(card, playerIndex = 0) {
+      const avatar = document.getElementById(`p-avatar-${playerIndex}`);
+      const discard = document.getElementById('main-discard');
 
-        <!-- SELEKCJA DWOCH TYCH SAMYCH KART / MULTI SELEKCJA -->
-        <div id="multi-select-bar" class="multi-select-bar">
-            <div id="multi-select-text">Zaznaczono karty do wyłożenia: 0</div>
-            <button class="btn btn-green" style="margin-top: 8px; margin-bottom: 0;" onclick="playSelectedCards()">WYŁÓŻ ZAZNACZONE! 🎴</button>
-        </div>
+      const avatarRect = avatar.getBoundingClientRect();
+      const discardRect = discard.getBoundingClientRect();
 
-        <div id="my-hand" style="display: flex; gap: 10px; overflow-x: auto; width: 100%; padding: 25px 10px; align-items: center; flex-grow: 1;"></div>
+      // Tworzenie tymczasowej karty do animacji
+      const flyingCard = createCardUI(card);
+      flyingCard.classList.add('flying-card');
+      
+      // Start w punkcie Avatara
+      flyingCard.style.left = `${avatarRect.left + avatarRect.width / 2 - 40}px`;
+      flyingCard.style.top = `${avatarRect.top + avatarRect.height / 2 - 60}px`;
 
-        <div style="width: 100%;">
-            <button class="btn btn-yellow" id="uno-btn" onclick="sayUno()" style="display:none;">🔥 KRZYCZ UNO! 🔥</button>
-            <button class="btn btn-blue" id="draw-btn" onclick="drawCard()" disabled>DOBIERZ KARTĘ 🎴</button>
-        </div>
-    </div>
+      document.body.appendChild(flyingCard);
 
-    <!-- PEŁNY EKRAN BLOKADY TELEFON -->
-    <div id="blocked-full-screen" class="blocked-full-screen">
-        <div class="icon">🚫</div>
-        <h1 style="font-family: 'Fredoka One', cursive; font-size: 2.8rem; color: #FFD166; margin: 10px 0;">ZABLOKOWANY!</h1>
-        <p id="blocked-text-reason" style="font-size: 1.4rem; font-weight: 900; color: #FFF;"></p>
-    </div>
+      // Wymuszenie reflow dla płynnej animacji CSS
+      flyingCard.getBoundingClientRect();
 
-    <!-- VOTE AGAIN MODAL -->
-    <div id="vote-modal" class="dealer-overlay">
-        <div class="vote-box">
-            <h1 style="font-family: 'Fredoka One', cursive; color: #EF476F;">KONIEC GRY! 🏆</h1>
-            <h3 id="winner-name-display" style="color: #073B4C;">Zwycięzca: -</h3>
-            <p style="font-weight: 900; margin: 15px 0;">Czy chcesz zagrać ponownie?</p>
-            <div id="mobile-vote-controls">
-                <button class="btn btn-green" onclick="submitVote(true)">TAK, ZAGRAJ PONOWNIE! 🔄</button>
-                <button class="btn" onclick="submitVote(false)">NIE, WYJDŹ 🚪</button>
-            </div>
-            <div id="vote-status-display" style="font-weight: 900; color: #118AB2; margin-top: 10px;">Głosy: 0/0</div>
-        </div>
-    </div>
+      // Przesunięcie na środek (stos) + obrót
+      flyingCard.style.left = `${discardRect.left}px`;
+      flyingCard.style.top = `${discardRect.top}px`;
+      flyingCard.style.transform = `rotate(${Math.floor(Math.random() * 40) - 20}deg)`;
 
-    <!-- COLOR PICKER -->
-    <div id="color-picker" class="dealer-overlay">
-        <div style="background: #FFF; padding: 25px; border-radius: 25px; width: 85%; max-width: 320px;">
-            <h2 style="color: #073B4C; font-family: 'Fredoka One', cursive; margin-bottom: 15px;">WYBIERZ KOLOR:</h2>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <button class="btn" style="background: var(--card-red);" onclick="chooseColor('red')">Czerwony</button>
-                <button class="btn" style="background: var(--card-blue);" onclick="chooseColor('blue')">Niebieski</button>
-                <button class="btn" style="background: var(--card-green); color:#073B4C;" onclick="chooseColor('green')">Zielony</button>
-                <button class="btn" style="background: var(--card-yellow); color:#073B4C;" onclick="chooseColor('yellow')">Żółty</button>
-            </div>
-        </div>
-    </div>
+      // Po zakończeniu lotu podmień kartę na stosie i usuń obiekt animacji
+      setTimeout(() => {
+        topDiscardCard = card;
+        renderMainDiscard();
+        flyingCard.remove();
+      }, 700);
+    }
 
-<script>
-    let peer = null, conn = null, connections = [], isHost = false;
-    let selectedIndices = [];
-    let votes = {};
+    // --- LOGIKA DLA TELEFONU ---
+    function triggerShuffleAnimation() {
+      const overlay = document.getElementById('shuffle-overlay');
+      overlay.style.display = 'flex';
 
-    const PEER_CONFIG = {
-        debug: 1,
-        config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] }
+      setTimeout(() => {
+        overlay.style.display = 'none';
+        generatePhoneHand();
+        renderPhoneHand();
+      }, 1200);
+    }
+
+    function generatePhoneHand() {
+      phoneHandCards = [];
+      for (let i = 0; i < 5; i++) {
+        const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+        const value = VALUES[Math.floor(Math.random() * VALUES.length)];
+        phoneHandCards.push({ color, value });
+      }
+    }
+
+    function renderPhoneHand() {
+      const handUI = document.getElementById('phone-hand');
+      handUI.innerHTML = '';
+
+      phoneHandCards.forEach((card, index) => {
+        const cardUI = createCardUI(card);
+        cardUI.onclick = (e) => playCardFromPhone(index, e.currentTarget);
+        handUI.appendChild(cardUI);
+      });
+    }
+
+    function playCardFromPhone(index, cardElement) {
+      const playedCard = phoneHandCards[index];
+
+      // Animacja znikania z ekranu telefonu (wylot w górę)
+      cardElement.classList.add('card-throw-phone');
+
+      // Wyślij wiadomość do Głównego Ekranu
+      channel.postMessage({
+        type: 'PLAY_CARD',
+        card: playedCard,
+        playerIndex: 0 // Gracz wysyłający (Dół)
+      });
+
+      setTimeout(() => {
+        phoneHandCards.splice(index, 1);
+        renderPhoneHand();
+      }, 500);
+    }
+
+    // POMOCNICZE TWORZENIE DOM KARTY
+    function createCardUI(card) {
+      const div = document.createElement('div');
+      div.className = `card ${card.color}`;
+      div.innerHTML = `
+        <div class="card-val-top">${card.value}</div>
+        <div class="card-color-label">${card.color}</div>
+        <div class="card-val-bot">${card.value}</div>
+      `;
+      return div;
+    }
+
+    // NASŁUCHIVANIE KOMUNIKATÓW MIĘDZY EKRANAMI
+    channel.onmessage = (event) => {
+      const { type, card, playerIndex } = event.data;
+
+      if (type === 'PLAY_CARD') {
+        // Gdy otrzyma sygnał z telefonu – uruchamia animację lotu na głównym ekranie
+        animateCardToDiscard(card, playerIndex);
+      }
     };
-
-    let gameState = {
-        players: [], deck: [], topCard: null, currentColor: null,
-        currentTurn: 0, direction: 1, started: false, attackStack: 0,
-        dealerIndex: 0, difficulty: 'normal', startCardCount: 7
-    };
-
-    function speakText(text) {
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'pl-PL';
-            utterance.rate = 1.0;
-            const voices = window.speechSynthesis.getVoices();
-            const plVoice = voices.find(v => v.lang.includes('pl') || v.lang.includes('PL'));
-            if(plVoice) utterance.voice = plVoice;
-            window.speechSynthesis.speak(utterance);
-        }
-    }
-
-    function createFullDeck() {
-        const colors = ['red', 'blue', 'green', 'yellow'];
-        const values = ['0','1','2','3','4','5','6','7','8','9','🚫','🔄','+2'];
-        let deck = [];
-
-        colors.forEach(color => {
-            values.forEach(val => {
-                deck.push({ color, value: val });
-                if (val !== '0') deck.push({ color, value: val });
-            });
-        });
-
-        for (let i = 0; i < 4; i++) {
-            deck.push({ color: 'black', value: '🎨' });
-            deck.push({ color: 'black', value: '+4' });
-        }
-
-        return deck.sort(() => Math.random() - 0.5);
-    }
-
-    function initHost() {
-        isHost = true;
-        const code = Math.random().toString(36).substring(2, 6).toUpperCase();
-        peer = new Peer('UNO-VACATION-' + code, PEER_CONFIG);
-
-        peer.on('open', () => {
-            switchScreen('host-lobby-screen');
-            document.getElementById('lobby-room-code').innerText = code;
-            document.getElementById('display-room-code').innerText = code;
-        });
-
-        peer.on('connection', (c) => {
-            connections.push(c);
-            c.on('data', (data) => handleHostMessage(c, data));
-            c.on('close', () => removePlayerByPeerId(c.peer));
-        });
-    }
-
-    function initClient() {
-        const rawCode = document.getElementById('join-code').value.trim().toUpperCase();
-        const name = document.getElementById('player-name').value.trim();
-        if(!rawCode || !name) return alert('Wpisz kod i imię!');
-
-        peer = new Peer(PEER_CONFIG);
-        peer.on('open', () => {
-            conn = peer.connect('UNO-VACATION-' + rawCode, { reliable: true });
-            conn.on('open', () => {
-                switchScreen('mobile-screen');
-                conn.send({ type: 'JOIN', name: name });
-            });
-            conn.on('data', (data) => handleClientMessage(data));
-        });
-    }
-
-    function removePlayerByPeerId(peerId) {
-        gameState.players = gameState.players.filter(p => p.id !== peerId);
-        connections = connections.filter(c => c.peer !== peerId);
-        updateLobbyUI();
-        if (gameState.started) broadcastState();
-    }
-
-    function updateLobbyUI() {
-        const list = document.getElementById('lobby-players-list');
-        list.innerHTML = gameState.players.map(p => `
-            <div style="background:rgba(255,255,255,0.6); padding:8px; border-radius:12px; margin-bottom:5px; font-weight:900; color:#073B4C;">
-                🏝️ ${p.name} ✅
-            </div>
-        `).join('');
-        document.getElementById('start-game-btn').style.display = gameState.players.length >= 2 ? 'block' : 'none';
-    }
-
-    function startDealySequence() {
-        gameState.difficulty = document.getElementById('difficulty-select').value;
-        gameState.startCardCount = parseInt(document.getElementById('custom-cards-count').value) || 7;
-        
-        document.getElementById('dealer-modal').style.display = 'flex';
-        speakText("Losujemy osobę, która przetasuje i rozda karty!");
-
-        let count = 0;
-        let interval = setInterval(() => {
-            let randomP = gameState.players[Math.floor(Math.random() * gameState.players.length)];
-            document.getElementById('dealer-name-display').innerText = randomP.name;
-            count++;
-            if (count > 15) {
-                clearInterval(interval);
-                gameState.dealerIndex = gameState.players.findIndex(p => p.name === randomP.name);
-                document.getElementById('dealer-title').innerText = "GRACZ TASUJĄCY KARTY:";
-                speakText(`${randomP.name} tasuje karty! Naciśnij rozdaj!`);
-                document.getElementById('confirm-deal-btn').style.display = 'block';
-            }
-        }, 150);
-    }
-
-    function finishDealingAndStart() {
-        document.getElementById('dealer-modal').style.display = 'none';
-        startGame();
-    }
-
-    function startGame() {
-        gameState.deck = createFullDeck();
-        gameState.started = true;
-        gameState.attackStack = 0;
-
-        gameState.players.forEach(p => {
-            p.hand = [];
-            drawMultiple(p, gameState.startCardCount);
-            p.declaredUno = false;
-            p.blockedRounds = 0;
-        });
-
-        do { gameState.topCard = gameState.deck.pop(); } while (gameState.topCard.color === 'black');
-
-        gameState.currentColor = gameState.topCard.color;
-        gameState.currentTurn = (gameState.dealerIndex + 1) % gameState.players.length;
-
-        switchScreen('pc-screen');
-        speakText(`Karty zostały rozdane! Rozpoczyna gracz ${gameState.players[gameState.currentTurn].name}`);
-        broadcastState(true);
-    }
-
-    function drawMultiple(player, count) {
-        for (let i = 0; i < count; i++) {
-            if (gameState.deck.length === 0) gameState.deck = createFullDeck();
-            player.hand.push(gameState.deck.pop());
-        }
-    }
-
-    function handleHostMessage(connection, data) {
-        let player = gameState.players.find(p => p.id === connection.peer);
-
-        if (data.type === 'JOIN') {
-            if (!player) gameState.players.push({ id: connection.peer, name: data.name, hand: [], declaredUno: false, blockedRounds: 0 });
-            updateLobbyUI();
-            broadcastState();
-        }
-
-        if (data.type === 'PLAY_SELECTED') {
-            if (gameState.players[gameState.currentTurn]?.id === connection.peer) {
-                let playedCards = data.indexes.map(i => player.hand[i]);
-                data.indexes.sort((a,b) => b - a).forEach(i => player.hand.splice(i, 1));
-
-                gameState.topCard = playedCards[playedCards.length - 1];
-                gameState.currentColor = data.chosenColor || (gameState.topCard.color !== 'black' ? gameState.topCard.color : gameState.currentColor);
-
-                let blocksCount = playedCards.filter(c => c.value === '🚫').length;
-                let reverseCount = playedCards.filter(c => c.value === '🔄').length;
-
-                playedCards.forEach(c => {
-                    if (c.value === '+2') gameState.attackStack += 2;
-                    if (c.value === '+4') gameState.attackStack += 4;
-                });
-
-                if (reverseCount % 2 !== 0) gameState.direction *= -1;
-
-                if (player.hand.length === 0) {
-                    speakText(`Zwycięzcą gry zostaje ${player.name}!`);
-                    triggerGameOver(player.name);
-                } else {
-                    if (blocksCount > 0) {
-                        let nextIdx = (gameState.currentTurn + gameState.direction + gameState.players.length) % gameState.players.length;
-                        let target = gameState.players[nextIdx];
-                        target.blockedRounds += blocksCount;
-                        speakText(`${player.name} zablokował gracza ${target.name} na ${blocksCount} rundy!`);
-                    } else if (reverseCount > 0) {
-                        let nextP = gameState.players[(gameState.currentTurn + gameState.direction + gameState.players.length) % gameState.players.length];
-                        speakText(`Kolejka została zmieniona i teraz zaczyna gracz ${nextP.name}`);
-                    }
-                    nextTurn();
-                }
-                broadcastState(true);
-            }
-        }
-
-        if (data.type === 'DRAW_CARD') {
-            if (gameState.players[gameState.currentTurn]?.id === connection.peer) {
-                let count = gameState.attackStack > 0 ? gameState.attackStack : 1;
-                drawMultiple(player, count);
-                gameState.attackStack = 0;
-                speakText(`${player.name} dobiera karty.`);
-                nextTurn();
-                broadcastState();
-            }
-        }
-
-        if (data.type === 'DECLARE_UNO') {
-            player.declaredUno = true;
-            speakText(`${player.name} głośno krzyczy UNO!`);
-            broadcastState();
-        }
-
-        if (data.type === 'SUBMIT_VOTE') {
-            votes[connection.peer] = data.vote;
-            checkVotes();
-        }
-    }
-
-    function triggerGameOver(winnerName) {
-        votes = {};
-        connections.forEach(c => c.send({ type: 'GAME_OVER', winner: winnerName }));
-        document.getElementById('winner-name-display').innerText = `Zwycięzca: ${winnerName}`;
-        document.getElementById('vote-modal').style.display = 'flex';
-    }
-
-    function checkVotes() {
-        let total = gameState.players.length;
-        let votedCount = Object.keys(votes).length;
-        document.getElementById('vote-status-display').innerText = `Głosy: ${votedCount}/${total}`;
-
-        if (votedCount === total) {
-            let yesVotes = Object.values(votes).filter(v => v === true).length;
-            if (yesVotes >= Math.ceil(total / 2)) {
-                document.getElementById('vote-modal').style.display = 'none';
-                startGame();
-            } else {
-                speakText("Brak większości na rewanż. Rozłączam pokój.");
-                location.reload();
-            }
-        }
-    }
-
-    function nextTurn() {
-        gameState.currentTurn = (gameState.currentTurn + gameState.direction + gameState.players.length) % gameState.players.length;
-        let currPlayer = gameState.players[gameState.currentTurn];
-
-        if (currPlayer && currPlayer.blockedRounds > 0) {
-            currPlayer.blockedRounds--;
-            if (currPlayer.blockedRounds > 0) {
-                speakText(`Gracz ${currPlayer.name} jest jeszcze zablokowany na 1 rundę.`);
-            } else {
-                speakText(`Blokada gracza ${currPlayer.name} minęła.`);
-            }
-            nextTurn();
-        }
-    }
-
-    function broadcastState(triggerAnim = false) {
-        renderPCBoard(triggerAnim);
-        document.body.className = 'color-' + gameState.currentColor;
-
-        connections.forEach(c => {
-            const player = gameState.players.find(p => p.id === c.peer);
-            c.send({
-                type: 'SYNC',
-                hand: player ? player.hand : [],
-                topCard: gameState.topCard,
-                currentColor: gameState.currentColor,
-                isMyTurn: gameState.players[gameState.currentTurn]?.id === c.peer,
-                currentTurnName: gameState.players[gameState.currentTurn]?.name,
-                attackStack: gameState.attackStack,
-                blockedRounds: player ? player.blockedRounds : 0
-            });
-        });
-    }
-
-    function renderPCBoard(triggerAnim = false) {
-        document.getElementById('deck-left-count').innerText = `TALIA: ${gameState.deck.length}`;
-
-        const circle = document.getElementById('players-circle');
-        circle.innerHTML = gameState.players.map((p, idx) => `
-            <div class="player-box-vacation ${idx === gameState.currentTurn ? 'active-turn' : ''}">
-                <div class="turn-dot"></div>
-                <div class="player-avatar-vacation">🏝️</div>
-                <div style="font-weight:900; font-size:1.2rem; margin-top:5px; color:#073B4C;">${p.name} ${p.declaredUno ? '🔥' : ''}</div>
-                <div style="font-weight:900; color:#EF476F;">🎴 ${p.hand.length} kart</div>
-                ${p.blockedRounds > 0 ? `<div style="color:#D63031; font-weight:900;">🚫 BLOKADA (${p.blockedRounds})</div>` : ''}
-            </div>
-        `).join('');
-
-        if (gameState.topCard) {
-            const topCardEl = document.getElementById('top-card');
-            topCardEl.className = `card ${gameState.topCard.color}`;
-            topCardEl.innerHTML = `
-                <div class="card-corner top-left">${gameState.topCard.value}</div>
-                <div class="card-inner">${gameState.topCard.value}</div>
-                <div class="card-corner bottom-right">${gameState.topCard.value}</div>
-            `;
-            document.getElementById('current-color-indicator').innerText = `KOLOR: ${gameState.currentColor.toUpperCase()}`;
-        }
-    }
-
-    function handleClientMessage(data) {
-        if (data.type === 'SYNC') {
-            const handEl = document.getElementById('my-hand');
-            handEl.innerHTML = '';
-            selectedIndices = [];
-            updateMultiSelectUI();
-
-            // PODGLĄD OBECNEJ KARTY STOŁU
-            const prevCard = document.getElementById('mobile-preview-card');
-            prevCard.className = `mini-preview-card ${data.currentColor}`;
-            prevCard.innerText = data.topCard ? data.topCard.value : '?';
-
-            // EKRAN BLOKADY
-            const blockedScreen = document.getElementById('blocked-full-screen');
-            if (data.blockedRounds > 0) {
-                blockedScreen.style.display = 'flex';
-                document.getElementById('blocked-text-reason').innerText = `Otrzymałeś blokadę! Czekasz jeszcze ${data.blockedRounds} rundy.`;
-            } else {
-                blockedScreen.style.display = 'none';
-            }
-
-            // RENDERING HAND
-            data.hand.forEach((card, idx) => {
-                const cardEl = document.createElement('div');
-                cardEl.className = `card mobile-card ${card.color}`;
-                cardEl.innerHTML = `
-                    <div class="card-corner top-left" style="font-size:0.9rem;">${card.value}</div>
-                    <div class="card-inner">${card.value}</div>
-                `;
-                cardEl.onclick = () => toggleCardSelection(idx, card, data.topCard, data.currentColor, data.isMyTurn, cardEl);
-                handEl.appendChild(cardEl);
-            });
-
-            const statusEl = document.getElementById('turn-status');
-            const drawBtn = document.getElementById('draw-btn');
-
-            if (data.isMyTurn) {
-                statusEl.innerText = data.attackStack > 0 ? `ODBIJ LUB DOBIERZ +${data.attackStack}!` : "TWOJA TURA! ZAGRAJ KARTĘ";
-                statusEl.style.color = "#06D6A0";
-                drawBtn.disabled = false;
-            } else {
-                statusEl.innerText = `Ruch gracza: ${data.currentTurnName}`;
-                statusEl.style.color = "#073B4C";
-                drawBtn.disabled = true;
-            }
-
-            document.getElementById('uno-btn').style.display = data.hand.length === 1 ? 'block' : 'none';
-        }
-
-        if (data.type === 'GAME_OVER') {
-            document.getElementById('vote-modal').style.display = 'flex';
-            document.getElementById('winner-name-display').innerText = `Zwycięzca: ${data.winner}`;
-        }
-    }
-
-    function toggleCardSelection(idx, card, topCard, activeColor, isMyTurn, element) {
-        if (!isMyTurn) return;
-
-        let pos = selectedIndices.indexOf(idx);
-        if (pos > -1) {
-            selectedIndices.splice(pos, 1);
-            element.classList.remove('selected');
-        } else {
-            selectedIndices.push(idx);
-            element.classList.add('selected');
-        }
-        updateMultiSelectUI();
-    }
-
-    function updateMultiSelectUI() {
-        const bar = document.getElementById('multi-select-bar');
-        if (selectedIndices.length > 0) {
-            bar.style.display = 'block';
-            document.getElementById('multi-select-text').innerText = `Zaznaczono kart do wyłożenia: ${selectedIndices.length}`;
-        } else {
-            bar.style.display = 'none';
-        }
-    }
-
-    function playSelectedCards() {
-        if (selectedIndices.length === 0) return;
-        
-        // Zapis do sprawdzenia koloru
-        let needsColor = false;
-        // Wyrzucenie kart
-        conn.send({ type: 'PLAY_SELECTED', indexes: selectedIndices });
-        selectedIndices = [];
-        updateMultiSelectUI();
-    }
-
-    function chooseColor(color) {
-        document.getElementById('color-picker').style.display = 'none';
-        conn.send({ type: 'PLAY_SELECTED', indexes: selectedIndices, chosenColor: color });
-        selectedIndices = [];
-    }
-
-    function drawCard() { conn.send({ type: 'DRAW_CARD' }); }
-    function sayUno() { conn.send({ type: 'DECLARE_UNO' }); }
-
-    function submitVote(voteVal) {
-        document.getElementById('mobile-vote-controls').style.display = 'none';
-        conn.send({ type: 'SUBMIT_VOTE', vote: voteVal });
-    }
-
-    function switchScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    }
-</script>
+  </script>
 </body>
 </html>
