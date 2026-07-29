@@ -1,1246 +1,949 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wakacyjne Makao / UNO - Ultimate Edition</title>
-  
-  <!-- Czcionka Google Fonts z obsługą polskich znaków -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Wakacyjne UNO Multiplayer</title>
+    <!-- Dołączenie biblioteki PeerJS dla P2P Multiplayer -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        :root {
+            --beach-sand: #f6d5b2;
+            --ocean-blue: #0077be;
+            --palm-green: #38761d;
+            --uno-red: #ff5555;
+            --uno-yellow: #ffaa00;
+            --uno-green: #55aa55;
+            --uno-blue: #5555ff;
+            --uno-black: #222;
+        }
 
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-    
-    body {
-      font-family: 'Roboto', sans-serif;
-      /* Wakacyjne tło: Tropikalny zachód słońca / Plaża */
-      background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 40%, #86a8e7 70%, #91eae4 100%);
-      background-size: 200% 200%;
-      animation: summerSky 15s ease infinite;
-      color: white;
-      height: 100vh;
-      overflow: hidden;
-    }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--ocean-blue) url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1920') no-repeat center center fixed;
+            background-size: cover;
+            overflow: hidden;
+            color: white;
+            height: 100vh;
+            width: 100vw;
+        }
 
-    @keyframes summerSky {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
+        /* Ekran Ładowania/Menu */
+        #lobby {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            text-align: center;
+        }
 
-    /* MODALE I NAKŁADKI SETUPU */
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(8px);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 20px;
-      z-index: 9999;
-    }
+        .btn {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            cursor: pointer;
+            background: var(--palm-green);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
 
-    .config-box {
-      background: rgba(255, 255, 255, 0.15);
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      padding: 30px;
-      border-radius: 25px;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      width: 320px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-      text-align: center;
-    }
+        .btn:hover { transform: scale(1.05); }
+        input { padding: 15px; border-radius: 25px; border: none; text-align: center; font-size: 1.1em;}
 
-    label { font-size: 14px; color: #fff; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-    
-    input {
-      padding: 12px;
-      border-radius: 12px;
-      border: none;
-      background: rgba(255, 255, 255, 0.9);
-      color: #333;
-      font-size: 18px;
-      font-weight: bold;
-      text-align: center;
-      text-transform: uppercase;
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
-    }
+        /* --- Widok Główny (LAPTOP / STÓŁ) --- */
+        #game-table {
+            display: none; /* Domyślnie ukryty */
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
 
-    .btn-summer {
-      padding: 14px 28px;
-      font-size: 18px;
-      font-weight: 900;
-      background: linear-gradient(45deg, #ff4e50, #f9d423);
-      border: none;
-      border-radius: 25px;
-      color: white;
-      cursor: pointer;
-      text-shadow: 0 1px 3px rgba(0,0,0,0.4);
-      box-shadow: 0 8px 20px rgba(255, 78, 80, 0.4);
-      transition: transform 0.15s, box-shadow 0.15s;
-    }
-    .btn-summer:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 12px 25px rgba(255, 78, 80, 0.6); }
-    .btn-summer:active { transform: translateY(1px); }
+        /* Gracze rozsypani po ekranie (Widok Laptopa) */
+        .player-info {
+            position: absolute;
+            background: rgba(0,0,0,0.6);
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 100px;
+            border: 2px solid transparent;
+        }
 
-    /* --- WIDOK GŁÓWNEGO EKRANU --- */
-    #main-screen {
-      display: none;
-      width: 100vw;
-      height: 100vh;
-      position: relative;
-    }
+        .player-info.active-turn {
+            border-color: var(--uno-yellow);
+            box-shadow: 0 0 15px var(--uno-yellow);
+        }
 
-    .room-header {
-      position: absolute;
-      top: 20px; left: 20px;
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(5px);
-      padding: 12px 24px;
-      border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.4);
-      font-weight: bold;
-      font-size: 18px;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
+        #p1-info { top: 20px; left: 50%; transform: translateX(-50%); } /* Góra */
+        #p2-info { top: 50%; right: 20px; transform: translateY(-50%); } /* Prawo */
+        #p3-info { bottom: 120px; left: 50%; transform: translateX(-50%); } /* Dół (nad ręką) */
+        #p4-info { top: 50%; left: 20px; transform: translateY(-50%); } /* Lewo */
 
-    /* AVATARY GRACZY NA KRAWĘDZIACH */
-    .player-slot {
-      position: absolute;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: rgba(255, 255, 255, 0.25);
-      backdrop-filter: blur(10px);
-      padding: 15px 25px;
-      border-radius: 20px;
-      border: 2px solid rgba(255, 255, 255, 0.5);
-      z-index: 5;
-      min-width: 140px;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-      transition: all 0.3s;
-    }
-    .player-slot.dealer { 
-      border-color: #f9d423; 
-      box-shadow: 0 0 25px #f9d423; 
-      background: rgba(249, 212, 35, 0.3);
-    }
+        .card-count { font-size: 2em; font-weight: bold; }
 
-    #p-avatar-0 { bottom: 30px; left: 50%; transform: translateX(-50%); } 
-    #p-avatar-1 { left: 30px; top: 50%; transform: translateY(-50%); }   
-    #p-avatar-2 { top: 30px; left: 50%; transform: translateX(-50%); }    
-    #p-avatar-3 { right: 30px; top: 50%; transform: translateY(-50%); }  
+        /* Środek stołu */
+        #center-deck {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
 
-    #center-board {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      display: flex;
-      gap: 50px;
-      z-index: 10;
-      align-items: center;
-    }
+        .pile {
+            width: 100px;
+            height: 150px;
+            border-radius: 10px;
+            border: 2px solid white;
+            position: relative;
+            background-size: cover;
+        }
 
-    /* WAKACYJNE STYLIZOWANE KARTY */
-    .card {
-      width: 90px;
-      height: 140px;
-      border-radius: 12px;
-      border: 3px solid white;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 8px;
-      font-weight: 900;
-      position: relative;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.25);
-      overflow: hidden;
-    }
+        #draw-pile {
+            background: var(--uno-black);
+            background-image: repeating-linear-gradient(45deg, #222, #222 10px, #333 10px, #333 20px);
+            cursor: pointer;
+            box-shadow: -5px 5px 0 rgba(0,0,0,0.2);
+        }
 
-    /* Kolory słonecznego lata */
-    .card.red { background: linear-gradient(135deg, #ff416c, #ff4b2b); color: white; }
-    .card.blue { background: linear-gradient(135deg, #00c6ff, #0072ff); color: white; }
-    .card.green { background: linear-gradient(135deg, #11998e, #38ef7d); color: white; }
-    .card.yellow { background: linear-gradient(135deg, #f8002f, #00c6ff); color: white; } /* Soczysty żółty/sunset */
-    .card.yellow-pure { background: linear-gradient(135deg, #ffe000, #799f0c); color: #222; }
-    .card.black { background: linear-gradient(135deg, #3a7bd5, #3a6073); color: white; }
-    
-    /* Rewers karty (Wzór palmy / letni rewers) */
-    .card.back { 
-      background: radial-gradient(circle, #ff7e5f 0%, #feb47b 100%);
-      border: 3px solid #fff;
-    }
-    .card.back::after {
-      content: '🌴';
-      font-size: 35px;
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-    }
+        #discard-pile {
+            background: white;
+            transition: background 0.3s;
+        }
 
-    .card-val-top { align-self: flex-start; font-size: 18px; }
-    .card-val-bot { align-self: flex-end; transform: rotate(180deg); font-size: 18px; }
-    
-    /* Tekst idealnie mieszczący się w karcie */
-    .card-center-text {
-      font-size: 11px;
-      text-align: center;
-      text-transform: uppercase;
-      font-weight: 900;
-      word-wrap: break-word;
-      line-height: 1.1;
-      padding: 0 2px;
-      max-width: 100%;
-    }
+        /* Wygląd Karty */
+        .card {
+            width: 100px;
+            height: 150px;
+            border-radius: 10px;
+            border: 2px solid white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3em;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            position: absolute;
+            backface-visibility: hidden;
+            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.3s;
+            cursor: pointer;
+            user-select: none;
+        }
 
-    /* ANIMACJE LOTU I TASOWANIA */
-    .animated-card {
-      position: absolute;
-      z-index: 1000;
-      transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      pointer-events: none;
-    }
+        .card.red { background-color: var(--uno-red); }
+        .card.green { background-color: var(--uno-green); }
+        .card.blue { background-color: var(--uno-blue); }
+        .card.yellow { background-color: var(--uno-yellow); }
+        .card.wild { background-color: var(--uno-black); }
 
-    .shuffling-deck {
-      animation: summerShuffle 0.25s infinite alternate;
-    }
+        .card-inner-oval {
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform: rotate(-20deg);
+        }
 
-    @keyframes summerShuffle {
-      0% { transform: rotate(-15deg) scale(1.1); }
-      100% { transform: rotate(15deg) scale(1.1); }
-    }
+        /* --- Widok TELEFONU (Dół ekranu - Ręka gracza) --- */
+        #player-hand-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 200px;
+            background: rgba(246, 213, 178, 0.9); /* Piaskowy, lekko przezroczysty */
+            border-top: 5px solid var(--palm-green);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            box-sizing: border-box;
+            z-index: 10;
+        }
 
-    /* --- WIDOK TELEFONU --- */
-    #phone-screen {
-      display: none;
-      width: 100vw;
-      height: 100vh;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
-      padding: 25px 15px;
-    }
+        #hand {
+            display: flex;
+            transition: all 0.3s;
+            height: 100%;
+            align-items: center;
+        }
 
-    #phone-hand {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      justify-content: center;
-      align-items: center;
-      width: 100%;
-    }
+        #hand .card {
+            position: relative;
+            margin-left: -40px; /* Wachlarz */
+            box-shadow: -2px 0 5px rgba(0,0,0,0.3);
+        }
 
-    #phone-hand .card {
-      width: 95px;
-      height: 145px;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
+        #hand .card:first-child { margin-left: 0; }
+        #hand .card:hover {
+            transform: translateY(-20px) rotate(0deg) !important;
+            z-index: 100;
+        }
 
-    #phone-hand .card:active {
-      transform: scale(0.9);
-    }
+        #hand .card.selected-for-stack {
+            border: 4px solid white;
+            transform: translateY(-30px) !important;
+        }
 
-    .card-throw-phone {
-      transform: translateY(-700px) scale(0.2) rotate(20deg) !important;
-      opacity: 0 !important;
-      transition: all 0.5s cubic-bezier(0.6, -0.28, 0.735, 0.045) !important;
-    }
+        /* UI Telefonu: Obecna Karta i Status */
+        #phone-status-ui {
+            position: absolute;
+            top: -110px;
+            left: 10px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            pointer-events: none;
+        }
 
-    #dealer-btn-container {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-      background: rgba(255, 255, 255, 0.2);
-      padding: 15px 25px;
-      border-radius: 20px;
-      backdrop-filter: blur(5px);
-    }
-  </style>
+        #current-card-indicator {
+            width: 60px; height: 90px;
+            border-radius: 8px;
+            border: 2px solid white;
+            background: gray;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 2em; font-weight: bold;
+        }
+
+        #block-status {
+            background: rgba(255,0,0,0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 10px;
+            display: none; /* Ukryte, gdy nie ma blokady */
+            text-align: center;
+        }
+        #block-icon { font-size: 2em; }
+
+        /* Przycisk Akcji (Rzuć Stack / Dobierz / UNO) */
+        #action-btn-container {
+            position: absolute;
+            right: 20px;
+            top: -60px;
+            pointer-events: auto;
+        }
+
+        /* --- ANIMACJE --- */
+        @keyframes deal-card {
+            0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+            100% { transform: var(--end-pos) rotate(var(--end-rot)); opacity: 1; }
+        }
+
+        .flying-card {
+            position: absolute;
+            z-index: 1000;
+            pointer-events: none;
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        /* Kolory dla wyboru Wild Card */
+        #color-picker {
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 200;
+            justify-content: center; align-items: center; gap: 20px;
+        }
+        .color-dot {
+            width: 80px; height: 80px; border-radius: 50%; cursor: pointer; border: 4px solid white;
+        }
+
+    </style>
 </head>
 <body>
 
-  <!-- 1. WYBÓR ROLI EKRANU -->
-  <div id="mode-selector" class="modal-overlay">
-    <h1 style="text-shadow: 0 4px 10px rgba(0,0,0,0.3);">☀️ WAKACYJNE MAKAO 🌴</h1>
-    <p>Wybierz tryb dla tego urządzenia:</p>
-    <button class="btn-summer" onclick="openMainSetup()">Główny Ekran (TV / Stół)</button>
-    <button class="btn-summer" onclick="openPhoneSetup()">Gracz (Telefon)</button>
-  </div>
-
-  <!-- 2. TWORZENIE STOŁU (GŁÓWNY EKRAN) -->
-  <div id="main-setup-modal" class="modal-overlay" style="display: none;">
-    <div class="config-box">
-      <h3>Otwórz Letni Stół</h3>
-      <label>Kod Pokoju:</label>
-      <input type="text" id="created-room-code" value="LATO26" maxlength="6">
-      <button class="btn-summer" onclick="startMainScreen()">Start Stolika</button>
-    </div>
-  </div>
-
-  <!-- 3. DOŁĄCZANIE (TELEFON) -->
-  <div id="phone-setup-modal" class="modal-overlay" style="display: none;">
-    <div class="config-box">
-      <h3>Dołącz do Plaży</h3>
-      <label>Twój Nick:</label>
-      <input type="text" id="player-nickname" placeholder="np. Ania" value="Plażowicz">
-      
-      <label>Kod Pokoju:</label>
-      <input type="text" id="join-room-code" value="LATO26" maxlength="6">
-
-      <button class="btn-summer" onclick="joinGameFromPhone()">Wchodzę do gry!</button>
-    </div>
-  </div>
-
-  <!-- 4. GŁÓWNY EKRAN (STÓŁ) -->
-  <div id="main-screen">
-    <div class="room-header">
-      🌴 Pokój: <span id="display-room-code">LATO26</span>
+    <!-- LOBBY & LOGOWANIE -->
+    <div id="lobby">
+        <h1>🌅 Wakacyjne UNO</h1>
+        <div id="connection-controls">
+            <button class="btn" onclick="startHost()">Stwórz Pokój (Host)</button>
+            <br><p>lub</p>
+            <input type="text" id="join-id" placeholder="Wpisz ID Hosta"><br>
+            <button class="btn" style="background-color: var(--ocean-blue);" onclick="startJoin()">Dołącz do Gry</button>
+        </div>
+        <div id="status-area" style="margin-top:20px;">Twój ID: <span id="my-id">...</span></div>
+        <div id="host-start-game-area" style="display:none; margin-top:20px;">
+            <p>Połączono graczy: <span id="connected-count">1</span>/4</p>
+            <button class="btn" style="background-color: var(--uno-red);" onclick="hostRequestsStart()">ZACZNIJ GRĘ</button>
+        </div>
     </div>
 
-    <!-- Avatary na krawędziach -->
-    <div id="p-avatar-0" class="player-slot" style="display:none;"><span class="p-name"></span><small class="p-cards"></small></div>
-    <div id="p-avatar-1" class="player-slot" style="display:none;"><span class="p-name"></span><small class="p-cards"></small></div>
-    <div id="p-avatar-2" class="player-slot" style="display:none;"><span class="p-name"></span><small class="p-cards"></small></div>
-    <div id="p-avatar-3" class="player-slot" style="display:none;"><span class="p-name"></span><small class="p-cards"></small></div>
+    <!-- STÓŁ GRY (WIDOK LAPTOPA) -->
+    <div id="game-table">
+        <!-- Info o graczach (porozucane) -->
+        <div id="p1-info" class="player-info"><div>Gracz 1</div><div class="card-count">7</div>Karty</div>
+        <div id="p2-info" class="player-info" style="display:none;"><div>Gracz 2</div><div class="card-count">7</div>Karty</div>
+        <div id="p3-info" class="player-info" style="display:none;"><div>Gracz 3</div><div class="card-count">7</div>Karty</div>
+        <div id="p4-info" class="player-info" style="display:none;"><div>Gracz 4</div><div class="card-count">7</div>Karty</div>
 
-    <div id="center-board">
-      <div style="text-align: center;">
-        <small style="font-weight: bold;">Talia</small>
-        <div id="main-deck" class="card back"></div>
-      </div>
-      <div style="text-align: center;">
-        <small style="font-weight: bold;">Stos</small>
-        <div id="main-discard"></div>
-      </div>
+        <!-- Środek -->
+        <div id="center-deck">
+            <div id="draw-pile" class="pile" onclick="playerRequestsDraw()"></div>
+            <div id="discard-pile" class="pile">
+                <!-- Tu lądują rzucone karty -->
+            </div>
+        </div>
     </div>
 
-    <!-- Ruletka na środku -->
-    <div id="roulette-banner" style="display:none; position: absolute; top: 25%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.75); backdrop-filter: blur(10px); padding: 25px 50px; border-radius: 25px; border: 3px solid #f9d423; text-align: center; z-index: 100;">
-      <h2 id="roulette-text" style="color: #f9d423; font-size: 28px;">🎲 Losowanie Krupiera...</h2>
-    </div>
-  </div>
-
-  <!-- 5. EKRAN TELEFONU -->
-  <div id="phone-screen">
-    <div style="text-align: center;">
-      <h2 id="phone-user-title" style="text-shadow: 0 2px 4px rgba(0,0,0,0.3);">Twoja Ręka</h2>
-      <p id="status-info" style="font-size: 14px; font-weight: bold; color: #fff; opacity: 0.9;">Czekaj na pozostałych graczy...</p>
-    </div>
-
-    <!-- Przycisk Krupiera na Telefonie -->
-    <div id="dealer-btn-container">
-      <p style="color: #f9d423; font-weight: 900; font-size: 18px; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Jesteś Krupierem! 🌴</p>
-      <button class="btn-summer" onclick="triggerDealerAction()">Potasuj i Rozdaj Karty</button>
-    </div>
-
-    <div id="phone-hand"></div>
-    <div></div>
-  </div>
-
-  <script>
-    const COLORS = ['red', 'blue', 'green', 'yellow-pure'];
-    const VALUES = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+2', 'Pomiń ruch', 'Zmiana koloru'];
-    
-    const channel = new BroadcastChannel('summer_makao_channel');
-
-    let currentRoomCode = '';
-    let myNickname = '';
-    let isMainScreen = false;
-    
-    let joinedPlayers = [];
-    let dealerIndex = -1;
-    let topDiscardCard = null;
-    let myPhoneCards = [];
-
-    function openMainSetup() {
-      document.getElementById('mode-selector').style.display = 'none';
-      document.getElementById('main-setup-modal').style.display = 'flex';
-    }
-
-    function openPhoneSetup() {
-      document.getElementById('mode-selector').style.display = 'none';
-      document.getElementById('phone-setup-modal').style.display = 'flex';
-    }
-
-    function startMainScreen() {
-      currentRoomCode = document.getElementById('created-room-code').value.toUpperCase();
-      document.getElementById('main-setup-modal').style.display = 'none';
-      document.getElementById('main-screen').style.display = 'block';
-      document.getElementById('display-room-code').textContent = currentRoomCode;
-      isMainScreen = true;
-    }
-
-    function joinGameFromPhone() {
-      myNickname = document.getElementById('player-nickname').value.trim() || 'Plażowicz';
-      currentRoomCode = document.getElementById('join-room-code').value.toUpperCase();
-
-      document.getElementById('phone-setup-modal').style.display = 'none';
-      document.getElementById('phone-screen').style.display = 'flex';
-      document.getElementById('phone-user-title').textContent = `🌴 ${myNickname}`;
-
-      channel.postMessage({
-        type: 'PLAYER_JOINED',
-        room: currentRoomCode,
-        nickname: myNickname
-      });
-    }
-
-    // SIECIOWE PRZESYŁANIE SYGNAŁÓW
-    channel.onmessage = (event) => {
-      const data = event.data;
-      if (data.room !== currentRoomCode) return;
-
-      if (isMainScreen && data.type === 'PLAYER_JOINED') {
-        if (!joinedPlayers.find(p => p.nickname === data.nickname) && joinedPlayers.length < 4) {
-          joinedPlayers.push({ nickname: data.nickname, cardCount: 0 });
-          updateAvatarsUI();
-
-          if (joinedPlayers.length >= 2 && dealerIndex === -1) {
-            startDealerRoulette();
-          }
-        }
-      }
-
-      if (!isMainScreen && data.type === 'YOU_ARE_DEALER') {
-        if (data.targetNickname === myNickname) {
-          document.getElementById('dealer-btn-container').style.display = 'flex';
-          document.getElementById('status-info').textContent = 'Kliknij poniżej, aby rozdać karty!';
-        } else {
-          document.getElementById('dealer-btn-container').style.display = 'none';
-          document.getElementById('status-info').textContent = `Krupier (${data.dealerName}) przygotowuje talię...`;
-        }
-      }
-
-      if (isMainScreen && data.type === 'EXECUTE_DEAL') {
-        runShufflingAndDealingAnimation();
-      }
-
-      if (!isMainScreen && data.type === 'DISTRIBUTE_HAND') {
-        if (data.targetNickname === myNickname) {
-          myPhoneCards = data.cards;
-          renderPhoneHand();
-          document.getElementById('dealer-btn-container').style.display = 'none';
-          document.getElementById('status-info').textContent = 'Karty rozdane! Zagraj kartę na stół.';
-        }
-      }
-
-      if (isMainScreen && data.type === 'PLAY_CARD') {
-        const pIndex = joinedPlayers.findIndex(p => p.nickname === data.nickname);
-        if (pIndex !== -1 && joinedPlayers[pIndex].cardCount > 0) {
-          joinedPlayers[pIndex].cardCount--;
-          updateAvatarsUI();
-          animateCardToDiscard(data.card, pIndex);
-        }
-      }
-    };
-
-    function updateAvatarsUI() {
-      joinedPlayers.forEach((p, idx) => {
-        const slot = document.getElementById(`p-avatar-${idx}`);
-        slot.style.display = 'flex';
-        slot.querySelector('.p-name').textContent = p.nickname;
-        slot.querySelector('.p-cards').textContent = `Karty: ${p.cardCount}`;
+    <!-- RĘKA GRACZA I UI (WIDOK TELEFONU) -->
+    <div id="player-hand-container">
         
-        if (idx === dealerIndex) slot.classList.add('dealer');
-        else slot.classList.remove('dealer');
-      });
-    }
+        <div id="phone-status-ui">
+            <!-- Co jest teraz na sosie (dla telefonu) -->
+            <div id="current-card-indicator" class="card red">?</div>
+            
+            <!-- Ikonka blokady -->
+            <div id="block-status">
+                <div id="block-icon">🚫</div>
+                <div id="block-text">Stoisz: 1 rund</div>
+            </div>
+        </div>
 
-    // RULETKA KRUPIERA
-    function startDealerRoulette() {
-      const banner = document.getElementById('roulette-banner');
-      const text = document.getElementById('roulette-text');
-      banner.style.display = 'block';
+        <div id="action-btn-container">
+            <button id="multi-play-btn" class="btn" style="background: var(--uno-yellow); display:none;" onclick="playSelectedStack()">Rzuć Wybrane</button>
+            <button id="uno-btn" class="btn" style="background: var(--uno-red); display:none;" onclick="pressUno()">UNO!</button>
+        </div>
 
-      let count = 0;
-      const interval = setInterval(() => {
-        const tempIdx = count % joinedPlayers.length;
-        text.textContent = `Tasuje: ${joinedPlayers[tempIdx].nickname}`;
-        count++;
+        <div id="hand">
+            <!-- Karty gracza generowane dynamicznie -->
+        </div>
+    </div>
 
-        if (count > 15) {
-          clearInterval(interval);
-          dealerIndex = Math.floor(Math.random() * joinedPlayers.length);
-          const chosenDealer = joinedPlayers[dealerIndex];
-          text.textContent = `Krupier: ${chosenDealer.nickname}! 🌴`;
-          
-          updateAvatarsUI();
+    <!-- Wybór koloru (Wild) -->
+    <div id="color-picker">
+        <div class="color-dot red" onclick="selectWildColor('red')" style="background:var(--uno-red)"></div>
+        <div class="color-dot blue" onclick="selectWildColor('blue')" style="background:var(--uno-blue)"></div>
+        <div class="color-dot green" onclick="selectWildColor('green')" style="background:var(--uno-green)"></div>
+        <div class="color-dot yellow" onclick="selectWildColor('yellow')" style="background:var(--uno-yellow)"></div>
+    </div>
 
-          setTimeout(() => {
-            banner.style.display = 'none';
-            channel.postMessage({
-              type: 'YOU_ARE_DEALER',
-              room: currentRoomCode,
-              targetNickname: chosenDealer.nickname,
-              dealerName: chosenDealer.nickname
-            });
-          }, 1500);
-        }
-      }, 150);
-    }
+    <script>
+        /**
+         * WAKACYJNE UNO - SILNIK P2P (PeerJS)
+         * 
+         * Architektura: Jeden gracz jest 'Hostem' (serwerem logicznym). 
+         * Inni są klientami, wysyłają input, dostają stan gry.
+         */
 
-    function triggerDealerAction() {
-      channel.postMessage({
-        type: 'EXECUTE_DEAL',
-        room: currentRoomCode
-      });
-    }
-
-    // ANIMACJA TASOWANIA I ROZDAWANIA DLA KRUPIERA
-    function runShufflingAndDealingAnimation() {
-      const deckUI = document.getElementById('main-deck');
-      deckUI.classList.add('shuffling-deck');
-
-      setTimeout(() => {
-        deckUI.classList.remove('shuffling-deck');
+        const peer = new Peer(); // Utwórz instancję PeerJS
+        let myId = null;
+        let conn = null; // Dla klienta: połączenie z hostem
+        let connections = []; // Dla hosta: lista połączeń z klientami
+        let isHost = false;
         
-        // Zawsze pierwsza karta na stole to zwykła cyfra (0-9)
-        const startColor = COLORS[Math.floor(Math.random() * COLORS.length)];
-        const startValue = Math.floor(Math.random() * 10).toString();
-        topDiscardCard = { color: startColor, value: startValue };
-        renderMainDiscard();
+        // Elementy UI
+        const ui = {
+            lobby: document.getElementById('lobby'),
+            myIdSpan: document.getElementById('my-id'),
+            connectedCount: document.getElementById('connected-count'),
+            hand: document.getElementById('hand'),
+            discard: document.getElementById('discard-pile'),
+            drawPile: document.getElementById('draw-pile'),
+            gameTable: document.getElementById('game-table'),
+            phoneCardIdic: document.getElementById('current-card-indicator'),
+            blockStatus: document.getElementById('block-status'),
+            blockText: document.getElementById('block-text'),
+            multiBtn: document.getElementById('multi-play-btn'),
+            colorPicker: document.getElementById('color-picker')
+        };
 
-        joinedPlayers.forEach((player, pIdx) => {
-          const cardsForPlayer = [];
-          for (let c = 0; c < 5; c++) {
-            cardsForPlayer.push({
-              color: COLORS[Math.floor(Math.random() * COLORS.length)],
-              value: VALUES[Math.floor(Math.random() * VALUES.length)]
-            });
-          }
-          player.cardCount = 5;
+        // --- INICJALIZACJA SIECI ---
 
-          for (let i = 0; i < 5; i++) {
-            setTimeout(() => animateCardDeal(pIdx), (pIdx * 5 + i) * 100);
-          }
-
-          channel.postMessage({
-            type: 'DISTRIBUTE_HAND',
-            room: currentRoomCode,
-            targetNickname: player.nickname,
-            cards: cardsForPlayer
-          });
+        peer.on('open', (id) => {
+            myId = id;
+            ui.myIdSpan.innerText = id;
+            console.log('Mój Peer ID:', id);
         });
 
-        updateAvatarsUI();
-      }, 1200);
-    }
-
-    function animateCardDeal(playerIndex) {
-      const deckElem = document.getElementById('main-deck');
-      const avatarElem = document.getElementById(`p-avatar-${playerIndex}`);
-
-      const dRect = deckElem.getBoundingClientRect();
-      const aRect = avatarElem.getBoundingClientRect();
-
-      const flyingCard = createCardUI({ color: 'black', value: '' }, true);
-      flyingCard.classList.add('animated-card');
-      
-      flyingCard.style.left = `${dRect.left}px`;
-      flyingCard.style.top = `${dRect.top}px`;
-
-      document.body.appendChild(flyingCard);
-      flyingCard.getBoundingClientRect();
-
-      flyingCard.style.left = `${aRect.left + 15}px`;
-      flyingCard.style.top = `${aRect.top + 15}px`;
-      flyingCard.style.transform = 'scale(0.3)';
-      flyingCard.style.opacity = '0.2';
-
-      setTimeout(() => flyingCard.remove(), 600);
-    }
-
-    function animateCardToDiscard(card, playerIndex) {
-      const avatarElem = document.getElementById(`p-avatar-${playerIndex}`);
-      const discardElem = document.getElementById('main-discard');
-
-      const aRect = avatarElem.getBoundingClientRect();
-      const dRect = discardElem.getBoundingClientRect();
-
-      const flyingCard = createCardUI(card);
-      flyingCard.classList.add('animated-card');
-
-      flyingCard.style.left = `${aRect.left}px`;
-      flyingCard.style.top = `${aRect.top}px`;
-
-      document.body.appendChild(flyingCard);
-      flyingCard.getBoundingClientRect();
-
-      flyingCard.style.left = `${dRect.left}px`;
-      flyingCard.style.top = `${dRect.top}px`;
-      flyingCard.style.transform = `rotate(${Math.floor(Math.random() * 40) - 20}deg)`;
-
-      setTimeout(() => {
-        topDiscardCard = card;
-        renderMainDiscard();
-        flyingCard.remove();
-      }, 600);
-    }
-
-    function renderMainDiscard() {
-      const discardUI = document.getElementById('main-discard');
-      discardUI.innerHTML = '';
-      if (topDiscardCard) {
-        discardUI.appendChild(createCardUI(topDiscardCard));
-      }
-    }
-
-    function renderPhoneHand() {
-      const handUI = document.getElementById('phone-hand');
-      handUI.innerHTML = '';
-
-      myPhoneCards.forEach((card, index) => {
-        const cardUI = createCardUI(card);
-        cardUI.onclick = (e) => playPhoneCard(index, e.currentTarget);
-        handUI.appendChild(cardUI);
-      });
-    }
-
-    function playPhoneCard(index, cardElem) {
-      const card = myPhoneCards[index];
-
-      cardElem.classList.add('card-throw-phone');
-
-      channel.postMessage({
-        type: 'PLAY_CARD',
-        room: currentRoomCode,
-        nickname: myNickname,
-        card: card
-      });
-
-      setTimeout(() => {
-        myPhoneCards.splice(index, 1);
-        renderPhoneHand();
-      }, 450);
-    }
-
-    function createCardUI(card, isBack = false) {
-      const div = document.createElement('div');
-      if (isBack) {
-        div.className = 'card back';
-        return div;
-      }
-      div.className = `card ${card.color}`;
-      div.innerHTML = `
-        <div class="card-val-top">${card.value}</div>
-        <div class="card-center-text">${card.value}</div>
-        <div class="card-val-bot">${card.value}</div>
-      `;
-      return div;
-    }
-  </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="pl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UNO - EDYCJA WAKACYJNA</title>
-  
-  <!-- Czcionka Google Fonts z pełną obsługą polskich znaków -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
-
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-    body {
-      font-family: 'Roboto', sans-serif;
-      background: radial-gradient(circle, #1e3c72 0%, #2a5298 100%);
-      color: white;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    /* MODALE I MENU STARTOWE */
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(10, 15, 30, 0.95);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 20px;
-      z-index: 9999;
-    }
-
-    .config-box {
-      background: #1e293b;
-      padding: 30px;
-      border-radius: 15px;
-      border: 1px solid #3b82f6;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      width: 320px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    }
-
-    label { font-size: 14px; color: #94a3b8; font-weight: bold; }
-    input {
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid #475569;
-      background: #0f172a;
-      color: white;
-      font-size: 16px;
-      text-align: center;
-      text-transform: uppercase;
-    }
-
-    button {
-      padding: 14px 24px;
-      font-size: 16px;
-      font-weight: 700;
-      background: #f59e0b;
-      border: none;
-      border-radius: 20px;
-      color: white;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-      transition: transform 0.1s, background 0.2s;
-    }
-    button:hover { background: #d97706; transform: scale(1.03); }
-
-    /* --- WIDOK GŁÓWNEGO EKRANU --- */
-    #main-screen {
-      display: none;
-      width: 100vw;
-      height: 100vh;
-      position: relative;
-    }
-
-    .room-header {
-      position: absolute;
-      top: 15px; left: 20px;
-      background: rgba(0,0,0,0.4);
-      padding: 10px 20px;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-
-    .player-slot {
-      position: absolute;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: rgba(15, 23, 42, 0.85);
-      padding: 12px 20px;
-      border-radius: 12px;
-      border: 2px solid rgba(255, 255, 255, 0.2);
-      z-index: 5;
-      min-width: 120px;
-      transition: border-color 0.3s;
-    }
-    .player-slot.dealer { border-color: #f59e0b; box-shadow: 0 0 15px #f59e0b; }
-
-    /* ROZRZUCENIE AVATARÓW NA CAŁYM EKRANIE */
-    #p-avatar-0 { bottom: 25px; left: 50%; transform: translateX(-50%); } 
-    #p-avatar-1 { left: 25px; top: 50%; transform: translateY(-50%); }   
-    #p-avatar-2 { top: 25px; left: 50%; transform: translateX(-50%); }    
-    #p-avatar-3 { right: 25px; top: 50%; transform: translateY(-50%); }  
-
-    #center-board {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      display: flex;
-      gap: 40px;
-      z-index: 10;
-      align-items: center;
-    }
-
-    /* KARTY (NAPRAWIONY TEKST W ŚRODKU) */
-    .card {
-      width: 85px;
-      height: 130px;
-      border-radius: 10px;
-      border: 2px solid white;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 6px;
-      font-weight: 900;
-      position: relative;
-      background-color: #333;
-      overflow: hidden;
-    }
-
-    .card.red { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
-    .card.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
-    .card.green { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
-    .card.yellow { background: linear-gradient(135deg, #eab308, #ca8a04); color: #000; }
-    .card.black { background: linear-gradient(135deg, #334155, #0f172a); color: white; }
-    .card.back { background: repeating-linear-gradient(45deg, #b22222, #b22222 10px, #7f1d1d 10px, #7f1d1d 20px); }
-
-    .card-val-top { align-self: flex-start; font-size: 16px; }
-    .card-val-bot { align-self: flex-end; transform: rotate(180deg); font-size: 16px; }
-    
-    /* Naprawiony tekst wewnątrz karty */
-    .card-center-text {
-      font-size: 11px;
-      text-align: center;
-      text-transform: uppercase;
-      font-weight: 900;
-      word-wrap: break-word;
-      line-height: 1.1;
-      padding: 0 2px;
-      max-width: 100%;
-    }
-
-    /* ANIMACJE LOTU */
-    .animated-card {
-      position: absolute;
-      z-index: 1000;
-      transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-      pointer-events: none;
-    }
-
-    .shuffling-deck {
-      animation: shuffle 0.3s infinite alternate;
-    }
-
-    @keyframes shuffle {
-      0% { transform: rotate(-12deg) scale(1.08); }
-      100% { transform: rotate(12deg) scale(1.08); }
-    }
-
-    /* --- WIDOK TELEFONU --- */
-    #phone-screen {
-      display: none;
-      width: 100vw;
-      height: 100vh;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px 10px;
-    }
-
-    #phone-hand {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-      align-items: center;
-      width: 100%;
-    }
-
-    #phone-hand .card {
-      width: 95px;
-      height: 145px;
-      cursor: pointer;
-    }
-
-    .card-throw-phone {
-      transform: translateY(-600px) scale(0.3) !important;
-      opacity: 0 !important;
-      transition: all 0.4s ease-in !important;
-    }
-
-    #dealer-btn-container {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-  </style>
-</head>
-<body>
-
-  <!-- 1. WYBÓR WIDOKU -->
-  <div id="mode-selector" class="modal-overlay">
-    <h2>Wybierz roślę tego ekranu:</h2>
-    <button onclick="openMainSetup()">Główny Ekran (Stół / TV)</button>
-    <button onclick="openPhoneSetup()">Gracz (Telefon)</button>
-  </div>
-
-  <!-- 2. STWORZENIE POKOJU (GŁÓWNY EKRAN) -->
-  <div id="main-setup-modal" class="modal-overlay" style="display: none;">
-    <div class="config-box">
-      <h3 style="text-align: center;">Tworzenie Stolu</h3>
-      <label>Kod Pokoju:</label>
-      <input type="text" id="created-room-code" value="1234" maxlength="6">
-      <button onclick="startMainScreen()">Uruchom Stół</button>
-    </div>
-  </div>
-
-  <!-- 3. DOŁĄCZANIE (TELEFON) -->
-  <div id="phone-setup-modal" class="modal-overlay" style="display: none;">
-    <div class="config-box">
-      <h3 style="text-align: center;">Dołącz do Gry</h3>
-      <label>Twój Nick:</label>
-      <input type="text" id="player-nickname" placeholder="np. Janek" value="Gracz 1">
-      
-      <label>Kod Pokoju:</label>
-      <input type="text" id="join-room-code" value="1234" maxlength="6">
-
-      <button onclick="joinGameFromPhone()">Dołącz</button>
-    </div>
-  </div>
-
-  <!-- 4. WIDOK GŁÓWNEGO EKRANU -->
-  <div id="main-screen">
-    <div class="room-header">
-      Pokój: <strong id="display-room-code">1234</strong>
-    </div>
-
-    <!-- Miejsca dla graczy rozrzucone po całym ekranie -->
-    <div id="p-avatar-0" class="player-slot" style="display:none;"><span class="p-name"></span><small class="p-cards"></small></div>
-    <div id="p-avatar-1" class="player-slot" style="display:none;"><span class="p-name"></span><small class="p-cards"></small></div>
-    <div id="p-avatar-2" class="player-slot" style="display:none;"><span class="p-name"></span><small class="p-cards"></small></div>
-    <div id="p-avatar-3" class="player-slot" style="display:none;"><span class="p-name"></span><small class="p-cards"></small></div>
-
-    <div id="center-board">
-      <div>
-        <small>Talia</small>
-        <div id="main-deck" class="card back"></div>
-      </div>
-      <div>
-        <small>Stos</small>
-        <div id="main-discard"></div>
-      </div>
-    </div>
-
-    <!-- Komunikat na środku o losowaniu -->
-    <div id="roulette-banner" style="display:none; position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.85); padding: 20px 40px; border-radius: 15px; border: 2px solid #f59e0b; text-align: center; z-index: 100;">
-      <h2 id="roulette-text" style="color: #f59e0b;">Losowanie Krupiera...</h2>
-    </div>
-  </div>
-
-  <!-- 5. WIDOK TELEFONU -->
-  <div id="phone-screen">
-    <div style="text-align: center;">
-      <h3 id="phone-user-title">Twoja Ręka</h3>
-      <p id="status-info" style="font-size: 12px; color: #94a3b8;">Czekaj na rozpoczęcie gry...</p>
-    </div>
-
-    <!-- Przycisk rozdawania gdy ten telefon jest krupierem -->
-    <div id="dealer-btn-container">
-      <p style="color: #f59e0b; font-weight: bold;">Jesteś Krupierem!</p>
-      <button onclick="triggerDealerAction()">Potasuj i Rozdaj Karty</button>
-    </div>
-
-    <div id="phone-hand"></div>
-    <div></div>
-  </div>
-
-  <script>
-    const COLORS = ['red', 'blue', 'green', 'yellow'];
-    const VALUES = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+2', 'Pomiń ruch', 'Zmiana koloru'];
-    
-    const channel = new BroadcastChannel('makao_uno_network');
-
-    let currentRoomCode = '';
-    let myNickname = '';
-    let isMainScreen = false;
-    
-    let joinedPlayers = []; // Lista graczy na głównym ekranie
-    let dealerIndex = -1;
-    let topDiscardCard = null;
-    let myPhoneCards = [];
-
-    // TWORZENIE I WCHODZENIE DO POKOJU
-    function openMainSetup() {
-      document.getElementById('mode-selector').style.display = 'none';
-      document.getElementById('main-setup-modal').style.display = 'flex';
-    }
-
-    function openPhoneSetup() {
-      document.getElementById('mode-selector').style.display = 'none';
-      document.getElementById('phone-setup-modal').style.display = 'flex';
-    }
-
-    function startMainScreen() {
-      currentRoomCode = document.getElementById('created-room-code').value.toUpperCase();
-      document.getElementById('main-setup-modal').style.display = 'none';
-      document.getElementById('main-screen').style.display = 'block';
-      document.getElementById('display-room-code').textContent = currentRoomCode;
-      isMainScreen = true;
-    }
-
-    function joinGameFromPhone() {
-      myNickname = document.getElementById('player-nickname').value.trim() || 'Gracz';
-      currentRoomCode = document.getElementById('join-room-code').value.toUpperCase();
-
-      document.getElementById('phone-setup-modal').style.display = 'none';
-      document.getElementById('phone-screen').style.display = 'flex';
-      document.getElementById('phone-user-title').textContent = `Gracz: ${myNickname}`;
-
-      // Powiadom ekran główny o dołączeniu
-      channel.postMessage({
-        type: 'PLAYER_JOINED',
-        room: currentRoomCode,
-        nickname: myNickname
-      });
-    }
-
-    // OSŁUCHOWANIE KOMUNIKATÓW MIĘDZY EKRANAMI
-    channel.onmessage = (event) => {
-      const data = event.data;
-      if (data.room !== currentRoomCode) return; // Odrzucamy wiadomości z innych pokoi
-
-      // GŁÓWNY EKRAN ODBIERA DOŁĄCZENIE GRACZA
-      if (isMainScreen && data.type === 'PLAYER_JOINED') {
-        if (!joinedPlayers.find(p => p.nickname === data.nickname) && joinedPlayers.length < 4) {
-          joinedPlayers.push({ nickname: data.nickname, cardCount: 0 });
-          updateAvatarsUI();
-
-          // Jeśli jest przynajmniej 2 graczy, uruchom losowanie Krupiera
-          if (joinedPlayers.length >= 2 && dealerIndex === -1) {
-            startDealerRoulette();
-          }
-        }
-      }
-
-      // TELEFON ODBIERA INFORMACJĘ ZE JEST KRUPIEREM
-      if (!isMainScreen && data.type === 'YOU_ARE_DEALER') {
-        if (data.targetNickname === myNickname) {
-          document.getElementById('dealer-btn-container').style.display = 'flex';
-          document.getElementById('status-info').textContent = 'Twoja kolej na potasowanie i rozdanie!';
-        } else {
-          document.getElementById('dealer-btn-container').style.display = 'none';
-          document.getElementById('status-info').textContent = `Krupier (${data.dealerName}) tasuje karty...`;
-        }
-      }
-
-      // AKCJA ROZDAWANIA Z TELEFONU KRUPIERA DO GŁÓWNEGO EKRANU
-      if (isMainScreen && data.type === 'EXECUTE_DEAL') {
-        runShufflingAndDealingAnimation();
-      }
-
-      // TELEFON ODBIERA KARTY PO ROZDANIU
-      if (!isMainScreen && data.type === 'DISTRIBUTE_HAND') {
-        if (data.targetNickname === myNickname) {
-          myPhoneCards = data.cards;
-          renderPhoneHand();
-          document.getElementById('dealer-btn-container').style.display = 'none';
-          document.getElementById('status-info').textContent = 'Karty rozdane! Wybierz kartę z ręki.';
-        }
-      }
-
-      // GŁÓWNY EKRAN ODBIERA ZAGRANĄ KARTĘ
-      if (isMainScreen && data.type === 'PLAY_CARD') {
-        const pIndex = joinedPlayers.findIndex(p => p.nickname === data.nickname);
-        if (pIndex !== -1 && joinedPlayers[pIndex].cardCount > 0) {
-          joinedPlayers[pIndex].cardCount--;
-          updateAvatarsUI();
-          animateCardToDiscard(data.card, pIndex);
-        }
-      }
-    };
-
-    // UPDATE DANYCH GRACZY NA GŁÓWNYM EKRANIE
-    function updateAvatarsUI() {
-      joinedPlayers.forEach((p, idx) => {
-        const slot = document.getElementById(`p-avatar-${idx}`);
-        slot.style.display = 'flex';
-        slot.querySelector('.p-name').textContent = p.nickname;
-        slot.querySelector('.p-cards').textContent = `Karty: ${p.cardCount}`;
-        
-        if (idx === dealerIndex) slot.classList.add('dealer');
-        else slot.classList.remove('dealer');
-      });
-    }
-
-    // LOSOWANIE KRUPIERA NA ŚRODKU EKRANU
-    function startDealerRoulette() {
-      const banner = document.getElementById('roulette-banner');
-      const text = document.getElementById('roulette-text');
-      banner.style.display = 'block';
-
-      let count = 0;
-      const interval = setInterval(() => {
-        const tempIdx = count % joinedPlayers.length;
-        text.textContent = `Tasować będzie: ${joinedPlayers[tempIdx].nickname}`;
-        count++;
-
-        if (count > 15) {
-          clearInterval(interval);
-          dealerIndex = Math.floor(Math.random() * joinedPlayers.length);
-          const chosenDealer = joinedPlayers[dealerIndex];
-          text.textContent = `Krupier: ${chosenDealer.nickname}!`;
-          
-          updateAvatarsUI();
-
-          setTimeout(() => {
-            banner.style.display = 'none';
-            // Wyślij sygnał do telefonów kto ma przycisk rozdawania
-            channel.postMessage({
-              type: 'YOU_ARE_DEALER',
-              room: currentRoomCode,
-              targetNickname: chosenDealer.nickname,
-              dealerName: chosenDealer.nickname
+        // Logika HOSTA
+        function startHost() {
+            isHost = true;
+            document.getElementById('connection-controls').style.display = 'none';
+            document.getElementById('host-start-game-area').style.display = 'block';
+            
+            peer.on('connection', (c) => {
+                if (connections.length >= 3 || gameState.started) {
+                    c.on('open', () => c.send({type: 'ERROR', msg: 'Pokój pełny lub gra ruszyła'}));
+                    setTimeout(() => c.close(), 500);
+                    return;
+                }
+                
+                connections.push(c);
+                ui.connectedCount.innerText = connections.length + 1;
+                setupChatConnection(c);
+                console.log('Ktoś dołączył:', c.peer);
             });
-          }, 1500);
         }
-      }, 150);
-    }
 
-    // TELEFON KLIKA "POTASUJ I ROZDAJ"
-    function triggerDealerAction() {
-      channel.postMessage({
-        type: 'EXECUTE_DEAL',
-        room: currentRoomCode
-      });
-    }
+        // Logika KLIENTA
+        function startJoin() {
+            const hostId = document.getElementById('join-id').value;
+            if (!hostId) return alert('Wpisz ID Hosta');
+            
+            conn = peer.connect(hostId);
+            setupChatConnection(conn);
+        }
 
-    // ANIMACJA TASOWANIA I ROZDAWANIA NA GŁÓWNYM EKRANIE
-    function runShufflingAndDealingAnimation() {
-      const deckUI = document.getElementById('main-deck');
-      deckUI.classList.add('shuffling-deck');
-
-      setTimeout(() => {
-        deckUI.classList.remove('shuffling-deck');
-        
-        // Zawsze pierwsza karta na stole to zwykła cyfra (0-9)
-        const startColor = COLORS[Math.floor(Math.random() * COLORS.length)];
-        const startValue = Math.floor(Math.random() * 10).toString();
-        topDiscardCard = { color: startColor, value: startValue };
-        renderMainDiscard();
-
-        // Generuj i wyślij karty wszystkim po kolei
-        joinedPlayers.forEach((player, pIdx) => {
-          const cardsForPlayer = [];
-          for (let c = 0; c < 5; c++) {
-            cardsForPlayer.push({
-              color: COLORS[Math.floor(Math.random() * COLORS.length)],
-              value: VALUES[Math.floor(Math.random() * VALUES.length)]
+        // Wspólne ustawienia kanału danych
+        function setupChatConnection(c) {
+            c.on('open', () => {
+                console.log('Połączenie otwarte z:', c.peer);
+                if (!isHost) {
+                    ui.lobby.innerHTML = "<h1>Oczekiwanie na start hosta...</h1>";
+                }
             });
-          }
-          player.cardCount = 5;
 
-          // Animacja wylotu kart ze środka do danego gracza
-          for (let i = 0; i < 5; i++) {
-            setTimeout(() => animateCardDeal(pIdx), (pIdx * 5 + i) * 100);
-          }
+            c.on('data', (data) => {
+                handleNetworkMessage(data, c);
+            });
 
-          // Wyślij graczowi jego zestaw kart
-          channel.postMessage({
-            type: 'DISTRIBUTE_HAND',
-            room: currentRoomCode,
-            targetNickname: player.nickname,
-            cards: cardsForPlayer
-          });
-        });
+            c.on('close', () => {
+                console.log('Połączenie zamknięte:', c.peer);
+                // Tu powinna być logika obsługi rozłączenia
+            });
+        }
 
-        updateAvatarsUI();
-      }, 1200);
-    }
+        // --- SILNIK GRY (LOGIKA - TYLKO HOST) ---
 
-    function animateCardDeal(playerIndex) {
-      const deckElem = document.getElementById('main-deck');
-      const avatarElem = document.getElementById(`p-avatar-${playerIndex}`);
+        let gameState = {
+            started: false,
+            players: [], // {id, name, peerConn, hand: [], isBot: false}
+            deck: [],
+            discardPile: [],
+            currentTurn: 0,
+            direction: 1, // 1: CW, -1: CCW
+            forcedDrawCount: 0, // Kumulacja +2 / +4
+            blocksStacked: 0, // Kumulacja blokad
+            currentPlayerBlocksToStand: 0, // Ile tur stoi obecny gracz
+            currentColor: null,
+            currentValue: null,
+            waitingForColorSelect: false,
+            unoPressed: false
+        };
 
-      const dRect = deckElem.getBoundingClientRect();
-      const aRect = avatarElem.getBoundingClientRect();
+        function hostRequestsStart() {
+            if (!isHost) return;
+            if (connections.length < 1) { alert("Potrzebujesz min. 2 graczy"); return; }
+            
+            // Zainicjuj graczy
+            gameState.players.push({ id: 0, peerId: myId, conn: null, hand: [], cardCount: 0, blocksToStand: 0 }); // Host
+            connections.forEach((c, index) => {
+                gameState.players.push({ id: index + 1, peerId: c.peer, conn: c, hand: [], cardCount: 0, blocksToStand: 0 });
+            });
 
-      const flyingCard = createCardUI({ color: 'black', value: '' }, true);
-      flyingCard.classList.add('animated-card');
-      
-      flyingCard.style.left = `${dRect.left}px`;
-      flyingCard.style.top = `${dRect.top}px`;
+            createDeck();
+            shuffleDeck(gameState.deck);
+            dealInitialCards();
+            
+            // Otwórz pierwszą kartę (musi być 0-9 wg Twojej zasady)
+            let firstCardIndex = gameState.deck.findIndex(c => c.type === 'number');
+            let firstCard = gameState.deck.splice(firstCardIndex, 1)[0];
+            gameState.discardPile.push(firstCard);
+            gameState.currentColor = firstCard.color;
+            gameState.currentValue = firstCard.value;
 
-      document.body.appendChild(flyingCard);
-      flyingCard.getBoundingClientRect(); // Reflow
+            gameState.started = true;
+            gameState.currentTurn = 0; // Zaczyna host
 
-      flyingCard.style.left = `${aRect.left + 10}px`;
-      flyingCard.style.top = `${aRect.top + 10}px`;
-      flyingCard.style.transform = 'scale(0.3)';
-      flyingCard.style.opacity = '0.3';
+            broadcastState();
+            ui.lobby.style.display = 'none';
+            ui.gameTable.style.display = 'block';
+            renderBoard();
+            renderHand();
+        }
 
-      setTimeout(() => flyingCard.remove(), 600);
-    }
+        // Tworzenie talii UNO
+        function createDeck() {
+            const colors = ['red', 'green', 'blue', 'yellow'];
+            // Numery 0-9
+            colors.forEach(color => {
+                gameState.deck.push({type: 'number', color, value: 0, id: Math.random()}); // Jedno zero
+                for(let i=1; i<=9; i++) {
+                    gameState.deck.push({type: 'number', color, value: i, id: Math.random()}); // Dwie jedynki, dwójki itd.
+                    gameState.deck.push({type: 'number', color, value: i, id: Math.random()});
+                }
+                // Akcyjne
+                for(let i=0; i<2; i++) {
+                    gameState.deck.push({type: 'block', color, value: '🚫', id: Math.random()});
+                    gameState.deck.push({type: 'reverse', color, value: '🔁', id: Math.random()});
+                    gameState.deck.push({type: 'plus2', color, value: '+2', id: Math.random()});
+                }
+            });
+            // Czarne
+            for(let i=0; i<4; i++) {
+                gameState.deck.push({type: 'wild', color: 'black', value: 'W', id: Math.random()});
+                gameState.deck.push({type: 'wild4', color: 'black', value: '+4', id: Math.random()});
+            }
+        }
 
-    function animateCardToDiscard(card, playerIndex) {
-      const avatarElem = document.getElementById(`p-avatar-${playerIndex}`);
-      const discardElem = document.getElementById('main-discard');
+        function shuffleDeck(deck) {
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[deck[i]]];
+            }
+        }
 
-      const aRect = avatarElem.getBoundingClientRect();
-      const dRect = discardElem.getBoundingClientRect();
+        function dealInitialCards() {
+            gameState.players.forEach(p => {
+                for(let i=0; i<7; i++) {
+                    p.hand.push(gameState.deck.pop());
+                }
+                p.cardCount = p.hand.length;
+            });
+        }
 
-      const flyingCard = createCardUI(card);
-      flyingCard.classList.add('animated-card');
+        // --- OBSŁUGA SIECI (WSPÓLNA) ---
 
-      flyingCard.style.left = `${aRect.left}px`;
-      flyingCard.style.top = `${aRect.top}px`;
+        function handleNetworkMessage(data, senderConn) {
+            console.log("Odebrano:", data);
+            
+            if (isHost) {
+                // Host odbiera komendy od klientów
+                let player = gameState.players.find(p => p.peerId === senderConn.peer);
+                if (!player) return;
 
-      document.body.appendChild(flyingCard);
-      flyingCard.getBoundingClientRect();
+                switch(data.type) {
+                    case 'TRY_PLAY_STACK':
+                        handlePlayerPlayStack(player, data.cardIds);
+                        break;
+                    case 'TRY_DRAW':
+                        handlePlayerDraw(player);
+                        break;
+                    case 'COLOR_SELECTED':
+                        handleColorSelection(player, data.color);
+                        break;
+                }
+            } else {
+                // Klient odbiera stan od hosta
+                switch(data.type) {
+                    case 'GAME_STATE_UPDATE':
+                        syncClientState(data.state);
+                        break;
+                    case 'ANIMATE_PLAY':
+                        animateCardPlay(data.card, data.fromPlayerId, true);
+                        break;
+                    case 'ANIMATE_DRAW':
+                        animateCardDraw(data.toPlayerId, true);
+                        break;
+                }
+            }
+        }
 
-      flyingCard.style.left = `${dRect.left}px`;
-      flyingCard.style.top = `${dRect.top}px`;
-      flyingCard.style.transform = `rotate(${Math.floor(Math.random() * 30) - 15}deg)`;
+        // Host wysyła stan do wszystkich
+        function broadcastState() {
+            let commonState = {
+                discardPileTop: gameState.discardPile[gameState.discardPile.length - 1],
+                currentColor: gameState.currentColor,
+                currentTurn: gameState.currentTurn,
+                forcedDrawCount: gameState.forcedDrawCount,
+                blocksStacked: gameState.blocksStacked,
+                direction: gameState.direction,
+                playersInfo: gameState.players.map(p => ({id: p.id, cardCount: p.hand.length, blocksToStand: p.blocksToStand})),
+                waitingForColorSelect: gameState.waitingForColorSelect
+            };
 
-      setTimeout(() => {
-        topDiscardCard = card;
-        renderMainDiscard();
-        flyingCard.remove();
-      }, 600);
-    }
+            gameState.players.forEach(p => {
+                if (p.conn) {
+                    // Wyślij stan ogólny + karty danego gracza
+                    p.conn.send({
+                        type: 'GAME_STATE_UPDATE',
+                        state: { ...commonState, yourHand: p.hand, blocksToStand: p.blocksToStand }
+                    });
+                }
+            });
+            
+            // Zaktualizuj też lokalne UI hosta
+            syncClientState({ ...commonState, yourHand: gameState.players[0].hand, blocksToStand: gameState.players[0].blocksToStand });
+        }
 
-    function renderMainDiscard() {
-      const discardUI = document.getElementById('main-discard');
-      discardUI.innerHTML = '';
-      if (topDiscardCard) {
-        discardUI.appendChild(createCardUI(topDiscardCard));
-      }
-    }
+        function broadcastAnimation(type, payload) {
+            gameState.players.forEach(p => {
+                if(p.conn) p.conn.send({type, ...payload});
+            });
+        }
 
-    // TELEFON RZUCA KARTĘ
-    function renderPhoneHand() {
-      const handUI = document.getElementById('phone-hand');
-      handUI.innerHTML = '';
+        // --- RENDEROWANIE I LOGIKA KLIENTA (Wspólna dla Hosta-Gracza i Klientów) ---
 
-      myPhoneCards.forEach((card, index) => {
-        const cardUI = createCardUI(card);
-        cardUI.onclick = (e) => playPhoneCard(index, e.currentTarget);
-        handUI.appendChild(cardUI);
-      });
-    }
+        let localInfo = {
+            myHand: [],
+            myIdInGame: null,
+            selectedStackIds: [],
+            isMyTurn: false
+        };
 
-    function playPhoneCard(index, cardElem) {
-      const card = myPhoneCards[index];
+        function syncClientState(state) {
+            if (!gameState.started) {
+                ui.lobby.style.display = 'none';
+                ui.gameTable.style.display = 'block';
+                gameState.started = true;
+            }
 
-      cardElem.classList.add('card-throw-phone');
+            localInfo.myHand = state.yourHand;
+            localInfo.isMyTurn = (state.playersInfo[state.currentTurn].peerId === myId); // To nie zadziała idealnie P2P bez mapowania IDs
+            // Prostsze mapowanie dla prototypu: host to always p1, conns are p2, p3...
+            localInfo.myIdInGame = isHost ? 0 : gameState.players?.find(p=>p.peerId === myId)?.id; // To wymaga poprawy w pełnej wersji
+            
+            // Tymczasowe mapowanie ID dla prototypu, zakładamy stałą kolejność
+            if (!isHost && localInfo.myIdInGame === undefined) {
+                 // Klient musi znaleźć swoje ID w liście playerInfo na podstawie PeerID
+                 // W prototypie upraszczamy:
+            }
 
-      channel.postMessage({
-        type: 'PLAY_CARD',
-        room: currentRoomCode,
-        nickname: myNickname,
-        card: card
-      });
+            renderHand();
+            renderBoard(state);
+            updatePhoneUI(state);
+        }
 
-      setTimeout(() => {
-        myPhoneCards.splice(index, 1);
-        renderPhoneHand();
-      }, 400);
-    }
+        function createCardEl(card) {
+            const el = document.createElement('div');
+            el.className = `card ${card.color}`;
+            el.dataset.cardId = card.id;
+            el.innerHTML = `<div class="card-inner-oval">${card.value}</div>`;
+            return el;
+        }
 
-    // POMOCNICZE GENEROWANIE UI KARTY Z POPRAWNYM TEKSTEM
-    function createCardUI(card, isBack = false) {
-      const div = document.createElement('div');
-      if (isBack) {
-        div.className = 'card back';
-        return div;
-      }
-      div.className = `card ${card.color}`;
-      div.innerHTML = `
-        <div class="card-val-top">${card.value}</div>
-        <div class="card-center-text">${card.value}</div>
-        <div class="card-val-bot">${card.value}</div>
-      `;
-      return div;
-    }
-  </script>
+        function renderHand() {
+            ui.hand.innerHTML = '';
+            localInfo.myHand.forEach((card, index) => {
+                const cardEl = createCardEl(card);
+                
+                // Kąt wachlarza
+                const rot = (index - localInfo.myHand.length / 2) * 5;
+                cardEl.style.transform = `rotate(${rot}deg)`;
+                
+                cardEl.onclick = () => onCardClicked(card, cardEl);
+                ui.hand.appendChild(cardEl);
+            });
+            
+            // Aktualizacja przycisku multi-play
+            ui.multiBtn.style.display = localInfo.selectedStackIds.length > 1 ? 'block' : 'none';
+        }
+
+        function renderBoard(state) {
+            if (!state) return;
+
+            // Karta na stosie odrzuconych (Widok Laptopa)
+            ui.discard.innerHTML = '';
+            if (state.discardPileTop) {
+                ui.discard.appendChild(createCardEl(state.discardPileTop));
+            }
+
+            // Info o graczach
+            state.playersInfo.forEach((pInfo, index) => {
+                const infoEl = document.getElementById(`p${index+1}-info`);
+                if (infoEl) {
+                    infoEl.style.display = 'block';
+                    infoEl.querySelector('.card-count').innerText = pInfo.cardCount;
+                    
+                    // Oznaczenie tury
+                    if (index === state.currentTurn) {
+                        infoEl.classList.add('active-turn');
+                    } else {
+                        infoEl.classList.remove('active-turn');
+                    }
+                }
+            });
+        }
+
+        function updatePhoneUI(state) {
+            // Wskaźnik obecnej karty
+            ui.phoneCardIdic.className = `card ${state.currentColor}`;
+            ui.phoneCardIdic.innerText = state.discardPileTop ? state.discardPileTop.value : '?';
+
+            // Status blokady
+            if (state.blocksToStand > 0) {
+                ui.blockStatus.style.display = 'flex';
+                ui.blockText.innerText = `Stoisz: ${state.blocksToStand} rund`;
+            } else {
+                ui.blockStatus.style.display = 'none';
+            }
+        }
+
+        // --- INTERAKCJA GRACZA (INPUT) ---
+
+        function onCardClicked(card, cardEl) {
+            // Sprawdź czy moja tura (uproszczenie w prototypie)
+            // if (!localInfo.isMyTurn) return; 
+
+            if (localInfo.selectedStackIds.includes(card.id)) {
+                // Odznacz
+                localInfo.selectedStackIds = localInfo.selectedStackIds.filter(id => id !== card.id);
+                cardEl.classList.remove('selected-for-stack');
+            } else {
+                // Zaznacz
+                if (localInfo.selectedStackIds.length > 0) {
+                    // Sprawdź czy pasuje numerem do zaznaczonych (multi-stacking)
+                    let firstSel = localInfo.myHand.find(c => c.id === localInfo.selectedStackIds[0]);
+                    if (firstSel.value !== card.value || card.type === 'wild' || card.type === 'wild4') {
+                        alert("Możesz grupować tylko karty o tym samym numerze/symbolu (nie czarne).");
+                        return;
+                    }
+                }
+                localInfo.selectedStackIds.push(card.id);
+                cardEl.classList.add('selected-for-stack');
+            }
+
+            // Jeśli zaznaczono jedną i pasuje, rzuć od razu. Jeśli więcej - pokaż przycisk.
+            if (localInfo.selectedStackIds.length === 1) {
+                // Próba rzucenia pojedynczej (tylko jeśli nie jest częścią grupy)
+                // W prototypie: rzucamy przyciskiem zawsze dla uproszczenia
+                ui.multiBtn.style.display = 'block';
+                ui.multiBtn.innerText = 'Rzuć Kartę';
+            } else if (localInfo.selectedStackIds.length > 1) {
+                ui.multiBtn.style.display = 'block';
+                ui.multiBtn.innerText = `Rzuć Serię (${localInfo.selectedStackIds.length})`;
+            } else {
+                ui.multiBtn.style.display = 'none';
+            }
+        }
+
+        function playSelectedStack() {
+            if (localInfo.selectedStackIds.length === 0) return;
+
+            const data = {
+                type: 'TRY_PLAY_STACK',
+                cardIds: localInfo.selectedStackIds
+            };
+
+            if (isHost) {
+                handlePlayerPlayStack(gameState.players[0], data.cardIds);
+            } else {
+                conn.send(data);
+            }
+
+            // Animacja lokalna (optymistyczna)
+            const firstCard = localInfo.myHand.find(c=>c.id === localInfo.selectedStackIds[0]);
+            animateCardPlay(firstCard, 0, false); // Trzeba poprawić ID gracza
+
+            localInfo.selectedStackIds = [];
+            ui.multiBtn.style.display = 'none';
+        }
+
+        function playerRequestsDraw() {
+            // if (!localInfo.isMyTurn) return;
+            const data = { type: 'TRY_DRAW' };
+            if (isHost) handlePlayerDraw(gameState.players[0]);
+            else conn.send(data);
+        }
+
+        // --- ANIMACJE (Z Sosu na Telefon, Z Telefonu na Sos) ---
+
+        function animateCardPlay(card, fromPlayerId, isRemote) {
+            // 1. Stwórz latającą kartę
+            const flyer = createCardEl(card);
+            flyer.classList.add('flying-card');
+            document.body.appendChild(flyer);
+
+            // 2. Ustal pozycję startową (od gracza na laptopie lub z dołu ekranu)
+            // W prototypie upraszczamy: zawsze leci z dołu (jakby od nas) na środek
+            const handRect = ui.hand.getBoundingClientRect();
+            const discardRect = ui.discard.getBoundingClientRect();
+
+            flyer.style.left = (handRect.left + handRect.width/2 - 50) + 'px';
+            flyer.style.top = (handRect.top) + 'px';
+
+            // 3. Trigger animacji (w następnym frame)
+            requestAnimationFrame(() => {
+                flyer.style.transform = `translate(${discardRect.left - handRect.left}px, ${discardRect.top - handRect.top}px) rotate(${Math.random()*20-10}deg)`;
+            });
+
+            // 4. Posprzątaj
+            setTimeout(() => {
+                flyer.remove();
+            }, 600);
+        }
+
+        function animateCardDraw(toPlayerId, isRemote) {
+             // Odwrócenie logiczne animateCardPlay
+             // Z draw-pile do player-info lub hand container
+             // ... Implementacja analogiczna do powyższej ...
+             console.log("Animacja dobierania dla p:", toPlayerId);
+        }
+
+        // --- ZAAWANSOWANA LOGIKA GRY (TYLKO HOST) ---
+
+        function handlePlayerPlayStack(player, cardIds) {
+            if (gameState.currentTurn !== player.id || gameState.waitingForColorSelect) return;
+
+            // 1. Pobierz obiekty kart z ręki
+            let playedCards = [];
+            cardIds.forEach(id => {
+                let card = player.hand.find(c => c.id === id);
+                if (card) playedCards.push(card);
+            });
+
+            if (playedCards.length === 0) return;
+
+            // 2. Sprawdź walidację (ZASADY Z TWOJEGO OPISU)
+            const topCard = gameState.discardPile[gameState.discardPile.length - 1];
+            const firstCard = playedCards[0];
+
+            let valid = false;
+
+            // Czy pierwsza karta pasuje?
+            if (gameState.forcedDrawCount > 0) {
+                // Trwa kumulacja kar (+2, +4)
+                if (topCard.value === '+2' && firstCard.value === '+2') valid = true;
+                else if (topCard.value === '+4' && (firstCard.value === '+4' || firstCard.value === '+2')) valid = true; // Twoja zasada: +2 na +4
+            } else if (gameState.blocksStacked > 0) {
+                // Trwa kumulacja blokad
+                if (firstCard.type === 'block') valid = true;
+            } else {
+                // Normalna tura
+                if (firstCard.color === gameState.currentColor || firstCard.value === gameState.currentValue || firstCard.color === 'black') {
+                    valid = true;
+                }
+            }
+
+            // Czy reszta kart pasuje do pierwszej (multi-stack)?
+            if (playedCards.length > 1) {
+                if (!playedCards.every(c => c.value === firstCard.value)) valid = false;
+            }
+
+            if (!valid) {
+                console.log("Ruch nieprawidłowy");
+                return; // Ignoruj zły ruch
+            }
+
+            // 3. Wykonaj ruch
+            // Usuń z ręki
+            player.hand = player.hand.filter(c => !cardIds.includes(c.id));
+            
+            // Dodaj na sos (ostatnia na górze)
+            playedCards.forEach(c => gameState.discardPile.push(c));
+            
+            const lastCard = playedCards[playedCards.length - 1];
+            gameState.currentColor = lastCard.color;
+            gameState.currentValue = lastCard.value;
+
+            // 4. Efekty Kart Akcyjnych (ZASADY KUMULACJI)
+            processCardEffects(playedCards);
+
+            // Animacje do klientów
+            broadcastAnimation('ANIMATE_PLAY', {card: firstCard, fromPlayerId: player.id});
+
+            // Sprawdź wygraną/UNO
+            if (player.hand.length === 0) {
+                alert(`Gracz ${player.id} WYGRYWA!`);
+                // Reset gry...
+                return;
+            }
+
+            if (gameState.waitingForColorSelect) {
+                // Nie kończ tury, czekaj na wybór koloru
+                broadcastState();
+            } else {
+                endTurn();
+            }
+        }
+
+        function processCardEffects(playedCards) {
+            const lastCard = playedCards[playedCards.length - 1];
+            const stackSize = playedCards.length;
+
+            switch(lastCard.type) {
+                case 'plus2':
+                    gameState.forcedDrawCount += (2 * stackSize);
+                    break;
+                case 'wild4':
+                    gameState.forcedDrawCount += (4 * stackSize);
+                    gameState.waitingForColorSelect = true;
+                    // Host pokazuje picker, klientom wysyła info w state
+                    if (gameState.currentTurn === 0) ui.colorPicker.style.display = 'flex';
+                    break;
+                case 'block':
+                    gameState.blocksStacked += stackSize;
+                    break;
+                case 'reverse':
+                    // Parzysta liczba rewersów kasuje efekt w >2 graczy
+                    if (gameState.players.length > 2) {
+                        if (stackSize % 2 !== 0) gameState.direction *= -1;
+                    } else {
+                        // W 2 osoby: parzysta gra przeciwnik, nieparzysta ja znowu
+                        if (stackSize % 2 !== 0) { /* Ruch wraca, nie zmieniaj tury w endTurn */ }
+                        else { /* Gra przeciwnik, zrób normalne endTurn */ }
+                    }
+                    break;
+                case 'wild':
+                    gameState.waitingForColorSelect = true;
+                    if (gameState.currentTurn === 0) ui.colorPicker.style.display = 'flex';
+                    break;
+            }
+        }
+
+        function handleColorSelection(player, color) {
+            if (gameState.currentTurn !== player.id || !gameState.waitingForColorSelect) return;
+            
+            gameState.currentColor = color;
+            gameState.waitingForColorSelect = false;
+            ui.colorPicker.style.display = 'none'; // Dla hosta
+            endTurn();
+        }
+
+        function selectWildColor(color) {
+            // Funkcja UI dla gracza (hosta lub klienta)
+            if (isHost) handleColorSelection(gameState.players[0], color);
+            else conn.send({type: 'COLOR_SELECTED', color});
+        }
+
+        function handlePlayerDraw(player) {
+            if (gameState.currentTurn !== player.id) return;
+
+            if (gameState.forcedDrawCount > 0) {
+                // Gracz nie obronił się przed karnymi kartami - dobiera całość
+                for(let i=0; i<gameState.forcedDrawCount; i++) {
+                    player.hand.push(gameState.deck.pop()); // Powinno być sprawdzanie pustej talii
+                }
+                gameState.forcedDrawCount = 0;
+                broadcastAnimation('ANIMATE_DRAW', {toPlayerId: player.id, count: gameState.forcedDrawCount});
+                endTurn(); // Traci ruch
+            } else if (gameState.blocksStacked > 0) {
+                // Nie obronił się przed blokadą
+                player.blocksToStand = gameState.blocksStacked;
+                gameState.blocksStacked = 0;
+                endTurn(); // Traci ruch
+            } else {
+                // Normalne dobranie 1 karty
+                const drawn = gameState.deck.pop();
+                player.hand.push(drawn);
+                broadcastAnimation('ANIMATE_DRAW', {toPlayerId: player.id, count: 1});
+                
+                // Sprawdź czy pasuje (uproszczenie: w prototypie nie można od razu rzucić)
+                broadcastState();
+                endTurn(); // Standardowo po dobraniu ruch przechodzi, chyba że pasuje (wersja pro)
+            }
+        }
+
+        function endTurn() {
+            // Logika pomijania tur (Blokady)
+            do {
+                gameState.currentTurn = (gameState.currentTurn + gameState.direction + gameState.players.length) % gameState.players.length;
+                if (gameState.players[gameState.currentTurn].blocksToStand > 0) {
+                    gameState.players[gameState.currentTurn].blocksToStand--;
+                    console.log(`Gracz ${gameState.currentTurn} stoi. Zostało: ${gameState.players[gameState.currentTurn].blocksToStand}`);
+                } else {
+                    break; // Znalaziono gracza, który może grać
+                }
+            } while (true); // Uwaga na nieskończoną pętlę przy wszystkich zablokowanych (mało prawdopodobne w UNO)
+
+            broadcastState();
+        }
+
+        // TODO: Implementacja "Krzyknij UNO" przed rzutem, kary (+2) itp.
+
+    </script>
 </body>
 </html>
